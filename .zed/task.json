@@ -1,0 +1,12 @@
+[
+  {
+    "label": "Backend",
+    "command": "uvicorn src.main:app --reload",
+    "cwd": "$ZED_WORKTREE_ROOT/backend",
+  },
+  {
+    "label": "Frontend",
+    "command": "npm run dev",
+    "cwd": "$ZED_WORKTREE_ROOT/frontend",
+  },
+]
