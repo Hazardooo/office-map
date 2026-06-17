@@ -1,24 +1,47 @@
-import os
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
-
-DB_USER = os.getenv("DB_USER", "postgres")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
-DB_HOST = os.getenv("DB_HOST", "postgres")
-DB_NAME = os.getenv("DB_NAME", "office_map")
-
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
-
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base = declarative_base()
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import DeclarativeBase
+from src.settings import settings
+from src.exceptions import DBConnectionError
 
 
-def get_db():
-    db = SessionLocal()
+class Base(DeclarativeBase):
+    pass
+
+
+engine = create_async_engine(
+    settings.POSTGRES_URL,
+    pool_pre_ping=True,
+    echo=False,
+    pool_recycle=300,
+    pool_size=10,
+    max_overflow=20,
+    pool_timeout=30,
+    connect_args={
+        "command_timeout": 60,
+        "server_settings": {"application_name": settings.DB_NAME},
+    },
+)
+
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    expire_on_commit=False,
+    autoflush=False,
+)
+
+
+@asynccontextmanager
+async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSessionLocal() as session:
+        yield session
+        await session.commit()
+
+
+async def get_postgres() -> AsyncGenerator[AsyncSession, None]:
     try:
-        yield db
-    finally:
-        db.close()
+        async with get_db_session() as session:
+            yield session
+    except OSError:
+        raise DBConnectionError()

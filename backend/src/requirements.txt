@@ -1,0 +1,18 @@
+# --- Web Framework ---
+fastapi[standard]>=0.115.0
+uvicorn[standard]>=0.34.0
+python-multipart>=0.0.20
+
+# --- Database (Async PostgreSQL) ---
+sqlalchemy[asyncio]>=2.0.0
+asyncpg>=0.30.0
+
+# --- Configuration ---
+pydantic>=2.10.0
+pydantic-settings>=2.8.0
+
+# --- HTTP Client (printer parser) ---
+httpx>=0.28.0
+
+# --- HTML Parsing (printer parser) ---
+beautifulsoup4>=4.13.0
