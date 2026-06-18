@@ -21,7 +21,6 @@ engine = create_async_engine(
     pool_timeout=30,
     connect_args={
         "command_timeout": 60,
-        "server_settings": {"application_name": settings.DB_NAME},
     },
 )
 
@@ -36,7 +35,6 @@ AsyncSessionLocal = async_sessionmaker(
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as session:
         yield session
-        await session.commit()
 
 
 async def get_postgres() -> AsyncGenerator[AsyncSession, None]:

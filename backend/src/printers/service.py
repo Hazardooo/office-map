@@ -1,39 +1,37 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
 
 from src.printers.repository import PrinterRepository
 from src.printers.parsers import get_parser
-from src.printers import schemas
-from src.printers.exceptions import PrinterNotFoundError, PrinterParseError
+from src.printers import schemas, models
+from src.exceptions import PrinterNotFoundError, PrinterParseError
 
 
 class PrinterService:
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.repo = PrinterRepository(db)
 
-    def create(self, data: schemas.PrinterCreate) -> schemas.PrinterResponse:
+    async def create(self, data: schemas.PrinterCreate) -> models.Printer:
         parser = get_parser(data.vendor, data.ip)
-        parsed = parser.get_status()
+        parsed = parser.get_status()  # Если парсер делает сетевые запросы, в будущем его тоже стоит сделать асинхронным
 
         if "error" in parsed:
             raise PrinterParseError(parsed["error"])
 
-        printer = self.repo.create(data, parsed)
-        return schemas.PrinterResponse.model_validate(printer)
+        return await self.repo.create(data, parsed)
 
-    def get_all(self) -> list[schemas.PrinterResponse]:
-        printers = self.repo.get_all()
-        return [schemas.PrinterResponse.model_validate(p) for p in printers]
+    async def get_all(self) -> List[models.Printer]:
+        return await self.repo.get_all()
 
-    def update(self, printer_id: int, data: schemas.PrinterUpdate) -> schemas.PrinterResponse:
-        printer = self.repo.get_by_id(printer_id)
+    async def update(self, printer_id: int, data: schemas.PrinterUpdate) -> models.Printer:
+        printer = await self.repo.get_by_id(printer_id)
         if not printer:
             raise PrinterNotFoundError(f"Принтер {printer_id} не найден")
 
-        updated = self.repo.update(printer, data)
-        return schemas.PrinterResponse.model_validate(updated)
+        return await self.repo.update(printer, data)
 
-    def refresh(self, printer_id: int) -> schemas.PrinterResponse:
-        printer = self.repo.get_by_id(printer_id)
+    async def refresh(self, printer_id: int) -> models.Printer:
+        printer = await self.repo.get_by_id(printer_id)
         if not printer:
             raise PrinterNotFoundError(f"Принтер {printer_id} не найден")
 
@@ -43,12 +41,11 @@ class PrinterService:
         if "error" in parsed:
             raise PrinterParseError(parsed["error"])
 
-        refreshed = self.repo.refresh_toner(printer, parsed)
-        return schemas.PrinterResponse.model_validate(refreshed)
+        return await self.repo.refresh_toner(printer, parsed)
 
-    def delete(self, printer_id: int) -> None:
-        printer = self.repo.get_by_id(printer_id)
+    async def delete(self, printer_id: int) -> None:
+        printer = await self.repo.get_by_id(printer_id)
         if not printer:
             raise PrinterNotFoundError(f"Принтер {printer_id} не найден")
 
-        self.repo.delete(printer)
+        await self.repo.delete(printer)

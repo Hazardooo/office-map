@@ -1,25 +1,41 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import List, Optional
+import re
 
 from src.printers import models, schemas
 
 
 class PrinterRepository:
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
-    def get_by_id(self, printer_id: int) -> Optional[models.Printer]:
-        return self.db.query(models.Printer).filter(models.Printer.id == printer_id).first()
+    def _parse_toner(self, toner_data: dict, color_key: str, default: int = 100) -> Optional[int]:
+        val = toner_data.get(color_key)
+        if val is None:
+            return None if color_key != "Черный" else default
 
-    def get_by_ip(self, ip: str) -> Optional[models.Printer]:
-        return self.db.query(models.Printer).filter(models.Printer.ip == ip).first()
+        digits = re.sub(r"\D", "", str(val))
+        try:
+            return int(digits) if digits else default
+        except ValueError:
+            return default
 
-    def get_all(self) -> List[models.Printer]:
-        return self.db.query(models.Printer).all()
+    async def get_by_id(self, printer_id: int) -> Optional[models.Printer]:
+        return await self.db.get(models.Printer, printer_id)
 
-    def create(self, data: schemas.PrinterCreate, parsed: dict) -> models.Printer:
+    async def get_by_ip(self, ip: str) -> Optional[models.Printer]:
+        query = select(models.Printer).filter(models.Printer.ip == ip)
+        result = await self.db.execute(query)
+        return result.scalars().first()
+
+    async def get_all(self) -> List[models.Printer]:
+        query = select(models.Printer)
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
+
+    async def create(self, data: schemas.PrinterCreate, parsed: dict) -> models.Printer:
         toner = parsed.get("toner", {})
-        toner_black = int(toner.get("Черный", "100%").replace("%", ""))
 
         db_printer = models.Printer(
             name=data.name or parsed.get("hostname") or parsed.get("model") or f"Printer {data.ip}",
@@ -27,31 +43,43 @@ class PrinterRepository:
             vendor=data.vendor,
             model=parsed.get("model"),
             hostname=parsed.get("hostname"),
+            serial_number=parsed.get("serial_number"),
             x=data.x,
             y=data.y,
-            toner_black=toner_black,
+            toner_black=self._parse_toner(toner, "Черный", 100),
+            toner_cyan=self._parse_toner(toner, "Голубой"),
+            toner_magenta=self._parse_toner(toner, "Пурпурный"),
+            toner_yellow=self._parse_toner(toner, "Желтый"),
             status=parsed.get("status", "unknown"),
         )
         self.db.add(db_printer)
-        self.db.commit()
-        self.db.refresh(db_printer)
+        await self.db.commit()
+        await self.db.refresh(db_printer)
         return db_printer
 
-    def update(self, printer: models.Printer, data: schemas.PrinterUpdate) -> models.Printer:
+    async def update(self, printer: models.Printer, data: schemas.PrinterUpdate) -> models.Printer:
         for field, value in data.model_dump(exclude_unset=True).items():
             setattr(printer, field, value)
-        self.db.commit()
-        self.db.refresh(printer)
+        await self.db.commit()
+        await self.db.refresh(printer)
         return printer
 
-    def refresh_toner(self, printer: models.Printer, parsed: dict) -> models.Printer:
+    async def refresh_toner(self, printer: models.Printer, parsed: dict) -> models.Printer:
         toner = parsed.get("toner", {})
-        printer.toner_black = int(toner.get("Черный", "100%").replace("%", ""))
+
+        printer.toner_black = self._parse_toner(toner, "Черный", 100)
+        printer.toner_cyan = self._parse_toner(toner, "Голубой")
+        printer.toner_magenta = self._parse_toner(toner, "Пурпурный")
+        printer.toner_yellow = self._parse_toner(toner, "Желтый")
+
         printer.status = parsed.get("status", "unknown")
-        self.db.commit()
-        self.db.refresh(printer)
+        if parsed.get("serial_number"):
+            printer.serial_number = parsed.get("serial_number")
+
+        await self.db.commit()
+        await self.db.refresh(printer)
         return printer
 
-    def delete(self, printer: models.Printer) -> None:
-        self.db.delete(printer)
-        self.db.commit()
+    async def delete(self, printer: models.Printer) -> None:
+        await self.db.delete(printer)
+        await self.db.commit()
