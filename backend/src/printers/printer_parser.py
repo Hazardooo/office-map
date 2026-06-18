@@ -1,28 +1,61 @@
-import requests
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
+import time
 
-# 1. URL страницы, которую хотим запарсить
-url = "http://10.100.0.16"  # Отличный тестовый сайт с цитатами
+options = Options()
+options.add_argument("--headless")
+options.add_argument("--ignore-certificate-errors")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
 
-# 2. Добавляем User-Agent, чтобы сайт думал, что мы обычный браузер
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-}
+driver = webdriver.Chrome(options=options)
 
-# 3. Скачиваем страницу
-response = requests.get(url, headers=headers)
+try:
+    url = "https://10.100.0.34/wlmpor/index.htm"
+    driver.get(url)
 
-# Проверяем, что запрос прошел успешно (код 200)
-if response.status_code == 200:
-    # 4. Передаем HTML-код в BeautifulSoup
-    soup = BeautifulSoup(response.text, "html.parser")
+    # Ждём и переключаемся в основной фрейм
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.NAME, "wlmframe"))
+    )
+    driver.switch_to.frame("wlmframe")
 
-    # 5. Ищем нужные элементы на странице
-    # Например, найдем все блоки с цитатами (на этом сайте они в тегах <span class="text">)
-    quotes = soup.find_all("span", class_="text")
+    # Ждём iframe тонера
+    WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.ID, "toner"))
+    )
+    time.sleep(3)
 
-    # 6. Выводим текст каждой цитаты
-    for index, quote in enumerate(quotes, 1):
-        print(f"{index}. {quote.text}")
-else:
-    print(f"Ошибка при загрузке страницы: {response.status_code}")
+    # Переключаемся в iframe тонера
+    driver.switch_to.frame("toner")
+    time.sleep(2)
+
+    # Парсим HTML
+    html = driver.page_source
+    soup = BeautifulSoup(html, "html.parser")
+
+    # Ищем таблицу тонера
+    toner_table = soup.find("table", id="contentrow")
+    if toner_table:
+        for tr in toner_table.find_all("tr"):
+            tds = tr.find_all("td")
+            row_data = [td.get_text(strip=True) for td in tds if td.get_text(strip=True)]
+
+            # Ищем строку с цветом и процентом
+            color = None
+            percent = None
+            for text in row_data:
+                if text in ["Черный", "Голубой", "Пурпурный", "Желтый"]:
+                    color = text
+                if "%" in text:
+                    percent = text
+
+            if color and percent:
+                print(f"{color}: {percent}")
+
+finally:
+    driver.quit()
