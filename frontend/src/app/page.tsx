@@ -21,7 +21,6 @@ interface Printer {
   toner_yellow: number | null;
   x_coordinate: number;
   y_coordinate: number;
-  map_id: number;
 }
 
 export default function Home() {
@@ -249,7 +248,6 @@ export default function Home() {
         : null,
       x_coordinate: clickCoords.x,
       y_coordinate: clickCoords.y,
-      map_id: activeMap.id,
     };
 
     try {
