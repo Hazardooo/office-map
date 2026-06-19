@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from sqlalchemy import Column, Integer, String, Float, DateTime
 from src.database import Base
 
@@ -22,7 +22,7 @@ class Printer(Base):
     toner_cyan = Column(Integer, nullable=True)
     toner_magenta = Column(Integer, nullable=True)
     toner_yellow = Column(Integer, nullable=True)
-    status = Column(String(20), default="unknown")
+    status = Column(String(100), default="unknown")
 
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
