@@ -9,14 +9,17 @@ from apscheduler.triggers.interval import IntervalTrigger
 from src.database import AsyncSessionLocal
 from src.printers.service import PrinterService
 from src.printers import models
+from src.printers.parsers.pool import init_pool, shutdown_pool
 
 logger = logging.getLogger(__name__)
 
 
 class PrinterScheduler:
-    def __init__(self, interval_minutes: int = 5):
+    def __init__(self, interval_minutes: int = 5, max_concurrent: int = 5, pool_size: int = 3):
         self.scheduler = AsyncIOScheduler()
         self.interval_minutes = interval_minutes
+        self.semaphore = asyncio.Semaphore(max_concurrent)
+        self.pool_size = pool_size
 
     async def _refresh_all(self):
         """Опрос всех принтеров и обновление БД."""
@@ -28,7 +31,7 @@ class PrinterScheduler:
             logger.info("Нет принтеров для опроса")
             return
 
-        logger.info(f"Начинаю опрос {len(printers)} принтеров...")
+        logger.info(f"Начинаю опрос {len(printers)} принтеров (max {self.semaphore._value} одновременно)...")
 
         tasks = [self._refresh_single(p) for p in printers]
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -42,18 +45,23 @@ class PrinterScheduler:
             logger.error(f"Исключение: {e}")
 
     async def _refresh_single(self, printer: models.Printer) -> bool:
-        """Каждый принтер — изолированная сессия + тред для парсера."""
-        async with AsyncSessionLocal() as session:
-            service = PrinterService(session)
-            try:
-                await service.refresh(printer.id)
-                logger.debug(f"✅ {printer.ip} — обновлён")
-                return True
-            except Exception as e:
-                logger.warning(f"❌ {printer.ip} — {e}")
-                return False
+        """Каждый принтер — изолированная сессия + ограничение concurrency."""
+        async with self.semaphore:
+            async with AsyncSessionLocal() as session:
+                service = PrinterService(session)
+                try:
+                    await service.refresh(printer.id)
+                    logger.debug(f"✅ {printer.ip} — обновлён")
+                    return True
+                except Exception as e:
+                    logger.warning(f"❌ {printer.ip} — {e}")
+                    return False
 
     def start(self):
+        # Инициализируем пул драйверов
+        init_pool(max_drivers=self.pool_size)
+        logger.info(f"Пул Selenium: {self.pool_size} драйверов")
+
         self.scheduler.add_job(
             func=self._refresh_all,
             trigger=IntervalTrigger(minutes=self.interval_minutes),
@@ -67,4 +75,5 @@ class PrinterScheduler:
 
     def shutdown(self):
         self.scheduler.shutdown()
-        logger.info("Планировщик остановлен")
+        shutdown_pool()
+        logger.info("Планировщик и пул остановлены")

@@ -1,5 +1,3 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -8,22 +6,19 @@ import time
 from typing import Dict
 
 from src.printers.parsers.base import BasePrinterParser
-
-
-CHROME_OPTIONS = Options()
-CHROME_OPTIONS.add_argument("--headless")
-CHROME_OPTIONS.add_argument("--ignore-certificate-errors")
-CHROME_OPTIONS.add_argument("--no-sandbox")
-CHROME_OPTIONS.add_argument("--disable-dev-shm-usage")
+from src.printers.parsers.pool import get_pool
 
 
 class KyoceraParser(BasePrinterParser):
-    """Парсер для принтеров Kyocera."""
+    """Парсер для принтеров Kyocera с пулом драйверов."""
 
     def get_toner(self) -> Dict[str, str]:
-        driver = None
+        pool = get_pool()
+        driver = pool.acquire(timeout=15)
+        if not driver:
+            return {"error": "Нет доступных драйверов"}
+
         try:
-            driver = webdriver.Chrome(options=CHROME_OPTIONS)
             driver.get(f"{self.base_url}/wlmpor/index.htm")
 
             WebDriverWait(driver, 10).until(
@@ -34,9 +29,7 @@ class KyoceraParser(BasePrinterParser):
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.ID, "toner"))
             )
-            time.sleep(3)
             driver.switch_to.frame("toner")
-            time.sleep(2)
 
             soup = BeautifulSoup(driver.page_source, "html.parser")
             toner_table = soup.find("table", id="contentrow")
@@ -61,13 +54,17 @@ class KyoceraParser(BasePrinterParser):
                 if color and percent:
                     result[color] = percent
 
-            return result if result else {"error": "Данные о тонере не найдены"}
+            return result if result else {"error": "Данные не найдены"}
 
         except Exception as e:
             return {"error": str(e)}
         finally:
-            if driver:
-                driver.quit()
+            # Возвращаемся к основному окну перед освобождением
+            try:
+                driver.switch_to.default_content()
+            except Exception:
+                pass
+            pool.release(driver)
 
     def get_status(self) -> Dict[str, str]:
         toner = self.get_toner()

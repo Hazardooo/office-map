@@ -8,14 +8,18 @@ from src.scheduler import PrinterScheduler
 from src.settings import settings
 import logging
 
-# Глобальный экземпляр для shutdown
 _scheduler: PrinterScheduler | None = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _scheduler
-    _scheduler = PrinterScheduler(interval_minutes=5)
+    # 10 принтеров → 5 concurrent, 4 драйвера в пуле
+    _scheduler = PrinterScheduler(
+        interval_minutes=5,
+        max_concurrent=5,
+        pool_size=4,
+    )
     _scheduler.start()
     yield
     _scheduler.shutdown()

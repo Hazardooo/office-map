@@ -1,58 +1,50 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import time
 import re
 from typing import Dict
 
 from .base import BasePrinterParser
-
-
-CHROME_OPTIONS = Options()
-CHROME_OPTIONS.add_argument("--headless")
-CHROME_OPTIONS.add_argument("--ignore-certificate-errors")
-CHROME_OPTIONS.add_argument("--allow-running-insecure-content")
-CHROME_OPTIONS.add_argument("--no-sandbox")
-CHROME_OPTIONS.add_argument("--disable-dev-shm-usage")
+from .pool import get_pool
 
 
 class CanonParser(BasePrinterParser):
-    """Парсер для принтеров Canon."""
+    """Парсер для принтеров Canon с пулом драйверов."""
 
     def _login_guest(self, driver) -> bool:
-        """Вход в режиме конечного пользователя (без пароля)."""
         try:
-            # Убеждаемся, что выбран "Режим конечного пользователя"
             guest_radio = driver.find_element(By.ID, "radio2")
             if not guest_radio.is_selected():
                 guest_radio.click()
-                time.sleep(1)
+                time.sleep(0.5)
 
-            # Кликаем "Вход"
             login_btn = driver.find_element(By.CSS_SELECTOR, "input[type='button'][value='Вход']")
             login_btn.click()
-            time.sleep(5)
 
+            # Ждём редиректа вместо фиксированного sleep
+            WebDriverWait(driver, 10).until(
+                lambda d: "login" not in d.current_url
+            )
             return True
         except Exception as e:
-            print(f"Guest login error: {e}")
             return False
 
     def get_toner(self) -> Dict[str, str]:
-        driver = None
+        pool = get_pool()
+        driver = pool.acquire(timeout=15)
+        if not driver:
+            return {"error": "Нет доступных драйверов в пуле"}
+
         try:
-            driver = webdriver.Chrome(options=CHROME_OPTIONS)
-            url = f"http://{self.ip}"
-            driver.get(url)
-            time.sleep(3)
+            driver.get(f"http://{self.ip}")
 
-            # Проверяем, нужна ли авторизация
-            if "login" in driver.current_url or "Имя для входа" in driver.page_source:
+            if "login" in driver.current_url:
                 if not self._login_guest(driver):
-                    return {"error": "Ошибка входа в режиме гостя"}
+                    return {"error": "Ошибка входа"}
 
-            # Парсим страницу портала
+            # Уменьшаем sleep, используем WebDriverWait
             soup = BeautifulSoup(driver.page_source, "html.parser")
 
             toner_module = soup.find("div", id="tonerInfomationModule")
@@ -75,23 +67,23 @@ class CanonParser(BasePrinterParser):
                         if match:
                             result[color] = match.group(1)
 
-            return result if result else {"error": "Данные о тонере не найдены"}
+            return result if result else {"error": "Данные не найдены"}
 
         except Exception as e:
             return {"error": str(e)}
         finally:
-            if driver:
-                driver.quit()
+            pool.release(driver)
 
     def get_status(self) -> Dict[str, str]:
-        driver = None
-        try:
-            driver = webdriver.Chrome(options=CHROME_OPTIONS)
-            url = f"http://{self.ip}:8000/rps/portal.cgi"
-            driver.get(url)
-            time.sleep(3)
+        pool = get_pool()
+        driver = pool.acquire(timeout=15)
+        if not driver:
+            return {"error": "Нет доступных драйверов"}
 
-            if "login" in driver.current_url or "Имя для входа" in driver.page_source:
+        try:
+            driver.get(f"http://{self.ip}:8000/rps/portal.cgi")
+
+            if "login" in driver.current_url:
                 if not self._login_guest(driver):
                     return {"error": "Ошибка входа"}
 
@@ -126,5 +118,4 @@ class CanonParser(BasePrinterParser):
         except Exception as e:
             return {"error": str(e)}
         finally:
-            if driver:
-                driver.quit()
+            pool.release(driver)
