@@ -1,12 +1,9 @@
-# src/maps/service.py
 import uuid
 from pathlib import Path
-
 from fastapi import UploadFile
 
 UPLOAD_DIR = Path("uploads/maps")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
 
 class MapService:
     ALLOWED_TYPES = {"image/jpeg", "image/png", "image/webp", "image/svg+xml"}
@@ -19,6 +16,7 @@ class MapService:
         ext = file.filename.rsplit(".", 1)[-1].lower()
         if ext not in {"jpg", "jpeg", "png", "webp", "svg"}:
             ext = "png"
+
         filename = f"{uuid.uuid4().hex}.{ext}"
         filepath = UPLOAD_DIR / filename
 
@@ -29,11 +27,10 @@ class MapService:
         with open(filepath, "wb") as f:
             f.write(content)
 
-        return {"filename": filename, "url": f"/uploads/maps/{filename}"}
+        return {"filename": filename, "url": f"/maps/file/{filename}"}
 
     def delete(self, filename: str) -> None:
         filepath = UPLOAD_DIR / filename
-        # Защита от path traversal
         if not filepath.resolve().is_relative_to(UPLOAD_DIR.resolve()):
             raise ValueError("Недопустимое имя файла")
 
