@@ -1,3 +1,4 @@
+import asyncio  # ← добавить
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
@@ -13,7 +14,7 @@ class PrinterService:
 
     async def create(self, data: schemas.PrinterCreate) -> models.Printer:
         parser = get_parser(data.vendor, data.ip)
-        parsed = parser.get_status()  # Если парсер делает сетевые запросы, в будущем его тоже стоит сделать асинхронным
+        parsed = await asyncio.to_thread(parser.get_status)  # ←
 
         if "error" in parsed:
             raise PrinterParseError(parsed["error"])
@@ -27,7 +28,6 @@ class PrinterService:
         printer = await self.repo.get_by_id(printer_id)
         if not printer:
             raise PrinterNotFoundError(f"Принтер {printer_id} не найден")
-
         return await self.repo.update(printer, data)
 
     async def refresh(self, printer_id: int) -> models.Printer:
@@ -36,7 +36,7 @@ class PrinterService:
             raise PrinterNotFoundError(f"Принтер {printer_id} не найден")
 
         parser = get_parser(printer.vendor, printer.ip)
-        parsed = parser.get_status()
+        parsed = await asyncio.to_thread(parser.get_status)  # ←
 
         if "error" in parsed:
             raise PrinterParseError(parsed["error"])
@@ -47,5 +47,4 @@ class PrinterService:
         printer = await self.repo.get_by_id(printer_id)
         if not printer:
             raise PrinterNotFoundError(f"Принтер {printer_id} не найден")
-
         await self.repo.delete(printer)
