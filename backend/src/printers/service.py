@@ -1,4 +1,5 @@
-import asyncio  # ← добавить
+import asyncio
+from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
@@ -14,7 +15,7 @@ class PrinterService:
 
     async def create(self, data: schemas.PrinterCreate) -> models.Printer:
         parser = get_parser(data.vendor, data.ip)
-        parsed = await asyncio.to_thread(parser.get_status)  # ←
+        parsed = await asyncio.to_thread(parser.get_status)
 
         if "error" in parsed:
             raise PrinterParseError(parsed["error"])
@@ -24,26 +25,26 @@ class PrinterService:
     async def get_all(self) -> List[models.Printer]:
         return await self.repo.get_all()
 
-    async def update(self, printer_id: int, data: schemas.PrinterUpdate) -> models.Printer:
+    async def update(self, printer_id: UUID, data: schemas.PrinterUpdate) -> models.Printer:
         printer = await self.repo.get_by_id(printer_id)
         if not printer:
             raise PrinterNotFoundError(f"Принтер {printer_id} не найден")
         return await self.repo.update(printer, data)
 
-    async def refresh(self, printer_id: int) -> models.Printer:
+    async def refresh(self, printer_id: UUID) -> models.Printer:
         printer = await self.repo.get_by_id(printer_id)
         if not printer:
             raise PrinterNotFoundError(f"Принтер {printer_id} не найден")
 
         parser = get_parser(printer.vendor, printer.ip)
-        parsed = await asyncio.to_thread(parser.get_status)  # ←
+        parsed = await asyncio.to_thread(parser.get_status)
 
         if "error" in parsed:
             raise PrinterParseError(parsed["error"])
 
         return await self.repo.refresh_toner(printer, parsed)
 
-    async def delete(self, printer_id: int) -> None:
+    async def delete(self, printer_id: UUID) -> None:
         printer = await self.repo.get_by_id(printer_id)
         if not printer:
             raise PrinterNotFoundError(f"Принтер {printer_id} не найден")

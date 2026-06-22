@@ -1,12 +1,14 @@
+import uuid
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy import Column, String, Float, DateTime, Integer
+from sqlalchemy.dialects.postgresql import UUID
 from src.database import Base
 
 
 class Printer(Base):
     __tablename__ = "printers"
 
-    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100))
     ip = Column(String(15), unique=True, nullable=False)
     vendor = Column(String(20), nullable=False)

@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from typing import List, Optional
+from uuid import UUID
 import re
 
 from src.printers import models, schemas
@@ -21,7 +22,7 @@ class PrinterRepository:
         except ValueError:
             return default
 
-    async def get_by_id(self, printer_id: int) -> Optional[models.Printer]:
+    async def get_by_id(self, printer_id: UUID) -> Optional[models.Printer]:
         return await self.db.get(models.Printer, printer_id)
 
     async def get_by_ip(self, ip: str) -> Optional[models.Printer]:

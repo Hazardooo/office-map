@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional
+from uuid import UUID
 
 
 class PrinterCreate(BaseModel):
@@ -20,7 +21,7 @@ class PrinterUpdate(BaseModel):
 
 
 class PrinterResponse(BaseModel):
-    id: int
+    id: UUID
     name: str
     ip: str
     vendor: str

@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 
@@ -29,7 +30,7 @@ async def get_all_printers(
 
 @router.put("/{printer_id}", response_model=schemas.PrinterResponse)
 async def update_printer(
-        printer_id: int,
+        printer_id: UUID,
         data: schemas.PrinterUpdate,
         service: PrinterService = Depends(get_printer_service)
 ):
@@ -41,7 +42,7 @@ async def update_printer(
 
 @router.post("/{printer_id}/refresh", response_model=schemas.PrinterResponse)
 async def refresh_printer(
-        printer_id: int,
+        printer_id: UUID,
         service: PrinterService = Depends(get_printer_service)
 ):
     try:
@@ -54,7 +55,7 @@ async def refresh_printer(
 
 @router.delete("/{printer_id}")
 async def delete_printer(
-        printer_id: int,
+        printer_id: UUID,
         service: PrinterService = Depends(get_printer_service)
 ):
     try:

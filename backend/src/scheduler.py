@@ -2,6 +2,7 @@ import asyncio
 import logging
 from datetime import datetime
 from typing import List
+from uuid import UUID
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
@@ -15,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class PrinterScheduler:
-    def __init__(self, interval_minutes: int = 5, max_concurrent: int = 5, pool_size: int = 3):
+    def __init__(self, interval_minutes: int = 5, max_concurrent: int = 5, pool_size: int = 4):
         self.scheduler = AsyncIOScheduler()
         self.interval_minutes = interval_minutes
         self.semaphore = asyncio.Semaphore(max_concurrent)
@@ -50,7 +51,7 @@ class PrinterScheduler:
             async with AsyncSessionLocal() as session:
                 service = PrinterService(session)
                 try:
-                    await service.refresh(printer.id)
+                    await service.refresh(printer.id)  # printer.id теперь UUID
                     logger.debug(f"✅ {printer.ip} — обновлён")
                     return True
                 except Exception as e:
@@ -58,7 +59,6 @@ class PrinterScheduler:
                     return False
 
     def start(self):
-        # Инициализируем пул драйверов
         init_pool(max_drivers=self.pool_size)
         logger.info(f"Пул Selenium: {self.pool_size} драйверов")
 
