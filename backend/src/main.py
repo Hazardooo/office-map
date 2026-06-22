@@ -17,8 +17,8 @@ async def lifespan(app: FastAPI):
     # 10 принтеров → 5 concurrent, 4 драйвера в пуле
     _scheduler = PrinterScheduler(
         interval_minutes=5,
-        max_concurrent=5,
-        pool_size=4,
+        max_concurrent=6,
+        pool_size=5,
     )
     _scheduler.start()
     yield
