@@ -5,18 +5,21 @@ import { Printer } from "@/lib/api";
 
 interface SidebarProps {
     loading: boolean;
+    totalPrinters: number;
     onMapUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
     clickCoords: { x: number; y: number } | null;
     newPrinter: { name: string; ip: string; vendor: "hp" | "kyocera" | "canon" };
-    setNewPrinter: (data: any) => void;
+    setNewPrinter: (data: unknown) => void;
     onCreatePrinter: (e: React.FormEvent) => void;
     setClickCoords: (coords: null) => void;
     selectedPrinter: Printer | null;
-    onRefresh: (id: number) => void;
+    onRefresh: (id: string) => void;
+    onDelete: (id: string) => void;
 }
 
 export function Sidebar({
                             loading,
+                            totalPrinters,
                             onMapUpload,
                             clickCoords,
                             newPrinter,
@@ -24,13 +27,19 @@ export function Sidebar({
                             onCreatePrinter,
                             setClickCoords,
                             selectedPrinter,
-                            onRefresh
+                            onRefresh,
+                            onDelete,
                         }: SidebarProps) {
     return (
         <aside className="w-80 bg-zinc-950 p-6 flex flex-col gap-6 border-r border-zinc-800 overflow-y-auto">
-            <div>
-                <h1 className="text-xl font-bold tracking-tight mb-1">Мониторинг Принтеров</h1>
-                <p className="text-xs text-zinc-400">Интерактивная карта офиса</p>
+            <div className="flex justify-between items-start">
+                <div>
+                    <h1 className="text-xl font-bold tracking-tight mb-1">Мониторинг Принтеров</h1>
+                    <p className="text-xs text-zinc-400">Интерактивная карта офиса</p>
+                </div>
+                <span className="bg-zinc-800 text-zinc-300 text-xs px-2.5 py-1 rounded-full font-mono border border-zinc-700">
+                    {totalPrinters}
+                </span>
             </div>
 
             <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800">
@@ -58,6 +67,7 @@ export function Sidebar({
                 <PrinterDetails
                     printer={selectedPrinter}
                     onRefresh={onRefresh}
+                    onDelete={onDelete}
                 />
             )}
         </aside>

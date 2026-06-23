@@ -4,6 +4,7 @@ from typing import List
 
 from src.printers import schemas
 from src.printers.dependencies import get_printer_service
+from src.printers.schemas import PrinterListResponse
 from src.printers.service import PrinterService
 
 router = APIRouter(prefix="/printers", tags=["printers"])
@@ -17,12 +18,15 @@ async def create_printer(
     return await service.create(data)
 
 
-@router.get("/", response_model=List[schemas.PrinterResponse])
+@router.get("/", response_model=PrinterListResponse)
 async def get_all_printers(
         service: PrinterService = Depends(get_printer_service),
 ):
-    return await service.get_all()
-
+    printers = await service.get_all()
+    return PrinterListResponse(
+        total=len(printers),
+        printers=printers,
+    )
 
 @router.put("/{printer_id}", response_model=schemas.PrinterResponse)
 async def update_printer(

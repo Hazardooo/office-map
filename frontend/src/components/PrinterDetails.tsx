@@ -3,10 +3,11 @@ import { Printer } from "@/lib/api";
 
 interface PrinterDetailsProps {
     printer: Printer;
-    onRefresh: (id: number) => void;
+    onRefresh: (id: string) => void;
+    onDelete: (id: string) => void;
 }
 
-export function PrinterDetails({ printer, onRefresh }: PrinterDetailsProps) {
+export function PrinterDetails({ printer, onRefresh, onDelete }: PrinterDetailsProps) {
     return (
         <div className="card-container">
             <div className="flex justify-between items-start mb-2">
@@ -50,9 +51,20 @@ export function PrinterDetails({ printer, onRefresh }: PrinterDetailsProps) {
                 )}
             </div>
 
-            <button onClick={() => onRefresh(printer.id)} className="btn-secondary w-full mt-4 text-xs">
-                Запросить статус по сети
-            </button>
+            <div className="flex gap-2 mt-4">
+                <button
+                    onClick={() => onRefresh(printer.id)}
+                    className="btn-primary flex-1 text-xs"
+                >
+                    Обновить
+                </button>
+                <button
+                    onClick={() => onDelete(printer.id)}
+                    className="btn-danger flex-1 text-xs"
+                >
+                    Удалить
+                </button>
+            </div>
         </div>
     );
 }

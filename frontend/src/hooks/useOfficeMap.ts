@@ -1,11 +1,12 @@
 // src/hooks/useOfficeMap.ts
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { api, Printer, BASE_URL } from "@/lib/api";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { api, Printer, BASE_URL, PrinterListResponse } from "@/lib/api";
 
 export function useOfficeMap() {
     const [printers, setPrinters] = useState<Printer[]>([]);
+    const [totalPrinters, setTotalPrinters] = useState(0);
     const [mapUrl, setMapUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [clickCoords, setClickCoords] = useState<{ x: number; y: number } | null>(null);
@@ -26,8 +27,9 @@ export function useOfficeMap() {
 
     const loadPrinters = async () => {
         try {
-            const data = await api.getPrinters();
-            setPrinters(data);
+            const data: PrinterListResponse = await api.getPrinters();
+            setPrinters(data.printers);
+            setTotalPrinters(data.total);
         } catch (err) {
             console.error("Ошибка загрузки списка принтеров:", err);
         }
@@ -88,7 +90,7 @@ export function useOfficeMap() {
         }
     };
 
-    const handleRefresh = async (id: number) => {
+    const handleRefresh = useCallback(async (id: string) => {
         try {
             const updated = await api.refreshPrinter(id);
             setSelectedPrinter(updated);
@@ -96,10 +98,22 @@ export function useOfficeMap() {
         } catch (err) {
             alert("Ошибка опроса принтера по SNMP/сеть.");
         }
-    };
+    }, []);
+
+    const handleDelete = useCallback(async (id: string) => {
+        if (!confirm("Удалить принтер?")) return;
+        try {
+            await api.deletePrinter(id);
+            setSelectedPrinter(null);
+            loadPrinters();
+        } catch (err) {
+            alert("Ошибка при удалении принтера.");
+        }
+    }, []);
 
     return {
         printers,
+        totalPrinters,
         mapUrl,
         loading,
         clickCoords,
@@ -113,5 +127,6 @@ export function useOfficeMap() {
         handleMapClick,
         handleCreatePrinter,
         handleRefresh,
+        handleDelete,
     };
 }

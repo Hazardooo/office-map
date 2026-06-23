@@ -7,6 +7,7 @@ import { MapCanvas } from "@/components/MapCanvas";
 export default function OfficeMapPage() {
     const {
         printers,
+        totalPrinters,
         mapUrl,
         loading,
         clickCoords,
@@ -20,12 +21,14 @@ export default function OfficeMapPage() {
         handleMapClick,
         handleCreatePrinter,
         handleRefresh,
+        handleDelete,
     } = useOfficeMap();
 
     return (
         <div className="flex h-screen bg-zinc-900 text-zinc-100 font-sans">
             <Sidebar
                 loading={loading}
+                totalPrinters={totalPrinters}
                 onMapUpload={handleMapUpload}
                 clickCoords={clickCoords}
                 newPrinter={newPrinter}
@@ -34,6 +37,7 @@ export default function OfficeMapPage() {
                 setClickCoords={setClickCoords}
                 selectedPrinter={selectedPrinter}
                 onRefresh={handleRefresh}
+                onDelete={handleDelete}
             />
 
             <main className="flex-1 flex flex-col items-center justify-center p-8 bg-zinc-900 overflow-auto relative">

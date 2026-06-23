@@ -2,7 +2,7 @@
 interface PrinterFormProps {
     clickCoords: { x: number; y: number };
     newPrinter: { name: string; ip: string; vendor: "hp" | "kyocera" | "canon" };
-    onChange: (data: any) => void;
+    onChange: (data: unknown) => void;
     onSubmit: (e: React.FormEvent) => void;
     onCancel: () => void;
 }

@@ -36,3 +36,7 @@ body {
 @utility card-container {
   @apply p-4 bg-zinc-900 rounded-lg border border-zinc-800 text-sm;
 }
+
+@utility btn-danger {
+  @apply bg-rose-900 hover:bg-rose-800 text-rose-100 rounded py-1.5 font-medium transition-colors text-center disabled:opacity-50;
+}

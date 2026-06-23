@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 
 
@@ -38,3 +38,7 @@ class PrinterResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class PrinterListResponse(BaseModel):
+    total: int
+    printers: List[PrinterResponse]
