@@ -1,13 +1,13 @@
-// src/components/PrinterDetails.tsx
 import { Printer } from "@/lib/api";
 
 interface PrinterDetailsProps {
     printer: Printer;
     onRefresh: (id: string) => void;
     onDelete: (id: string) => void;
+    onMove: () => void;
 }
 
-export function PrinterDetails({ printer, onRefresh, onDelete }: PrinterDetailsProps) {
+export function PrinterDetails({ printer, onRefresh, onDelete, onMove }: PrinterDetailsProps) {
     return (
         <div className="card-container">
             <div className="flex justify-between items-start mb-2">
@@ -22,6 +22,7 @@ export function PrinterDetails({ printer, onRefresh, onDelete }: PrinterDetailsP
                 <p><span className="text-zinc-500">Бренд:</span> {printer.vendor.toUpperCase()}</p>
                 {printer.model && <p><span className="text-zinc-500">Модель:</span> {printer.model}</p>}
                 {printer.serial_number && <p><span className="text-zinc-500">S/N:</span> {printer.serial_number}</p>}
+                <p><span className="text-zinc-500">Позиция:</span> X:{printer.x}% Y:{printer.y}%</p>
             </div>
 
             <div className="space-y-2 border-t border-zinc-800 pt-3">
@@ -51,16 +52,22 @@ export function PrinterDetails({ printer, onRefresh, onDelete }: PrinterDetailsP
                 )}
             </div>
 
-            <div className="flex gap-2 mt-4">
+            <div className="grid grid-cols-2 gap-2 mt-4">
                 <button
                     onClick={() => onRefresh(printer.id)}
-                    className="btn-primary flex-1 text-xs"
+                    className="btn-primary text-xs"
                 >
                     Обновить
                 </button>
                 <button
+                    onClick={onMove}
+                    className="btn-secondary text-xs"
+                >
+                    Переместить
+                </button>
+                <button
                     onClick={() => onDelete(printer.id)}
-                    className="btn-danger flex-1 text-xs"
+                    className="btn-danger text-xs"
                 >
                     Удалить
                 </button>

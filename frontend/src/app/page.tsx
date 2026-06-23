@@ -13,6 +13,7 @@ export default function OfficeMapPage() {
         clickCoords,
         newPrinter,
         selectedPrinter,
+        mode,
         mapContainerRef,
         setNewPrinter,
         setClickCoords,
@@ -22,6 +23,8 @@ export default function OfficeMapPage() {
         handleCreatePrinter,
         handleRefresh,
         handleDelete,
+        handleStartMove,
+        handleCancelMove,
     } = useOfficeMap();
 
     return (
@@ -29,6 +32,7 @@ export default function OfficeMapPage() {
             <Sidebar
                 loading={loading}
                 totalPrinters={totalPrinters}
+                mode={mode}
                 onMapUpload={handleMapUpload}
                 clickCoords={clickCoords}
                 newPrinter={newPrinter}
@@ -38,11 +42,15 @@ export default function OfficeMapPage() {
                 selectedPrinter={selectedPrinter}
                 onRefresh={handleRefresh}
                 onDelete={handleDelete}
+                onStartMove={handleStartMove}
+                onCancelMove={handleCancelMove}
             />
 
             <main className="flex-1 flex flex-col items-center justify-center p-8 bg-zinc-900 overflow-auto relative">
                 <MapCanvas
                     mapUrl={mapUrl}
+                    mode={mode}
+                    selectedPrinter={selectedPrinter}
                     mapContainerRef={mapContainerRef}
                     onMapClick={handleMapClick}
                     onMapUpload={handleMapUpload}

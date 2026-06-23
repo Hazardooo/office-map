@@ -1,8 +1,9 @@
-// src/hooks/useOfficeMap.ts
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { api, Printer, BASE_URL, PrinterListResponse } from "@/lib/api";
+import {useState, useEffect, useRef, useCallback} from "react";
+import {api, Printer, BASE_URL, PrinterListResponse} from "@/lib/api";
+
+type Mode = "view" | "add" | "move";
 
 export function useOfficeMap() {
     const [printers, setPrinters] = useState<Printer[]>([]);
@@ -11,6 +12,7 @@ export function useOfficeMap() {
     const [loading, setLoading] = useState(false);
     const [clickCoords, setClickCoords] = useState<{ x: number; y: number } | null>(null);
     const [selectedPrinter, setSelectedPrinter] = useState<Printer | null>(null);
+    const [mode, setMode] = useState<Mode>("view");
 
     const [newPrinter, setNewPrinter] = useState({
         name: "",
@@ -45,6 +47,74 @@ export function useOfficeMap() {
         }
     };
 
+    const getCoordsFromEvent = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!mapContainerRef.current) return null;
+        const rect = mapContainerRef.current.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        return {x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100};
+    };
+
+    const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const target = e.target as HTMLElement;
+
+        // Клик на маркер — выбор принтера
+        const marker = target.closest(".printer-marker") as HTMLElement | null;
+        if (marker) {
+            const printerId = marker.dataset.printerId;
+            const printer = printers.find(p => p.id === printerId);
+            if (printer) {
+                if (mode === "move") {
+                    // В режиме перемещения клик на маркер не выбирает, а ждёт клика на карту
+                    setSelectedPrinter(printer);
+                } else {
+                    setSelectedPrinter(printer);
+                    setClickCoords(null);
+                }
+            }
+            return;
+        }
+
+        // Клик на пустое место
+        const coords = getCoordsFromEvent(e);
+        if (!coords) return;
+
+        if (mode === "move" && selectedPrinter) {
+            // Перемещаем выбранный принтер
+            handleMovePrinter(selectedPrinter.id, coords.x, coords.y);
+            return;
+        }
+
+        // Обычный режим — добавление нового принтера
+        if (mode === "view" || mode === "add") {
+            setClickCoords(coords);
+            setSelectedPrinter(null);
+            setMode("add");
+        }
+    };
+
+    const handleMovePrinter = useCallback(async (id: string, x: number, y: number) => {
+        try {
+            await api.updatePrinter(id, {x, y});
+            setMode("view");
+            setSelectedPrinter(null);
+            loadPrinters();
+        } catch (err) {
+            alert("Не удалось переместить принтер.");
+        }
+    }, []);
+
+    const handleStartMove = useCallback(() => {
+        if (!selectedPrinter) return;
+        setMode("move");
+    }, [selectedPrinter]);
+
+    const handleCancelMove = useCallback(() => {
+        setMode("view");
+        setSelectedPrinter(null);
+        setClickCoords(null);
+    }, []);
+
     const handleMapUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files?.[0]) return;
         setLoading(true);
@@ -60,18 +130,6 @@ export function useOfficeMap() {
         }
     };
 
-    const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!mapContainerRef.current) return;
-        if ((e.target as HTMLElement).closest(".printer-marker")) return;
-
-        const rect = mapContainerRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-        setClickCoords({ x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100 });
-        setSelectedPrinter(null);
-    };
-
     const handleCreatePrinter = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!clickCoords) return;
@@ -83,7 +141,8 @@ export function useOfficeMap() {
                 y: clickCoords.y
             });
             setClickCoords(null);
-            setNewPrinter({ name: "", ip: "", vendor: "hp" });
+            setNewPrinter({name: "", ip: "", vendor: "hp"});
+            setMode("view");
             loadPrinters();
         } catch (err) {
             alert("Не удалось добавить принтер. Проверьте правильность IP адреса.");
@@ -119,14 +178,18 @@ export function useOfficeMap() {
         clickCoords,
         newPrinter,
         selectedPrinter,
+        mode,
         mapContainerRef,
         setNewPrinter,
         setClickCoords,
         setSelectedPrinter,
+        setMode,
         handleMapUpload,
         handleMapClick,
         handleCreatePrinter,
         handleRefresh,
         handleDelete,
+        handleStartMove,
+        handleCancelMove,
     };
 }
