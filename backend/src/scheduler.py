@@ -2,15 +2,14 @@ import asyncio
 import logging
 from datetime import datetime
 from typing import List
-from uuid import UUID
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
 from src.database import AsyncSessionLocal
-from src.printers.service import PrinterService
 from src.printers import models
 from src.printers.parsers.pool import init_pool, shutdown_pool
+from src.printers.service import PrinterService
 
 logger = logging.getLogger(__name__)
 

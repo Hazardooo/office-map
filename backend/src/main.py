@@ -14,11 +14,10 @@ _scheduler: PrinterScheduler | None = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _scheduler
-    # 10 принтеров → 5 concurrent, 4 драйвера в пуле
     _scheduler = PrinterScheduler(
-        interval_minutes=5,
-        max_concurrent=6,
-        pool_size=5,
+        max_concurrent=10,
+        pool_size=7,
+        interval_minutes=5
     )
     _scheduler.start()
     yield
