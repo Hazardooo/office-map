@@ -3,7 +3,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, List
 
-from src.maps.exceptions import SecurityError
+from src.maps.exceptions import SecurityError, MapNotFoundError
 from src.maps.models import MapFile
 
 
@@ -62,10 +62,10 @@ class FileSystemMapRepository(IMapRepository):
         latest_path = max(files, key=lambda f: f.stat().st_mtime)
         return self._path_to_model(latest_path)
 
-    async def get_by_filename(self, filename: str) -> Optional[MapFile]:
+    async def get_by_filename(self, filename: str) -> MapFile:
         filepath = self._validate_path(filename)
         if not filepath.exists():
-            return None
+            raise MapNotFoundError(f"Файл карты не найден: {filename}")
         return self._path_to_model(filepath)
 
     async def list_all(self) -> List[MapFile]:

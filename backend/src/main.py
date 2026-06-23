@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
-
+from src.error_handlers import register_error_handlers
 from src.printers.router import router as printers_router
 from src.maps.router import router as maps_router
 from src.scheduler import PrinterScheduler
@@ -46,3 +46,4 @@ app.add_middleware(
 
 app.include_router(printers_router)
 app.include_router(maps_router)
+register_error_handlers(app)

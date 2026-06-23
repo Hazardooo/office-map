@@ -6,11 +6,12 @@ from fastapi import UploadFile
 
 from src.maps.models import MapFile
 from src.maps.repository import IMapRepository
-from src.maps.exceptions import InvalidFormatError, FileTooLargeError
+from src.maps.exceptions import InvalidFormatError, FileTooLargeError, MapNotFoundError
 
 
 class IValidator(Protocol):
     """Абстракция валидатора. Позволяет менять правила без изменения сервиса."""
+
     def validate(self, file: UploadFile, content: bytes) -> None:
         ...
 
@@ -52,7 +53,7 @@ class MapFileValidator:
 
         if len(content) > self.max_size_bytes:
             raise FileTooLargeError(
-                f"Файл слишком большой. Максимум {self.max_size_bytes // (1024*1024)} МБ"
+                f"Файл слишком большой. Максимум {self.max_size_bytes // (1024 * 1024)} МБ"
             )
 
 
@@ -91,8 +92,11 @@ class MapService:
 
         return map_file
 
-    async def get_current(self) -> Optional[MapFile]:
-        return await self._repo.get_latest()
+    async def get_current(self) -> MapFile:
+        map_file = await self._repo.get_latest()
+        if not map_file:
+            raise MapNotFoundError("Карта ещё не загружена")
+        return map_file
 
     async def delete(self, filename: str) -> None:
         await self._repo.delete(filename)

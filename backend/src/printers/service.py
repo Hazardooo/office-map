@@ -6,7 +6,7 @@ from typing import List
 from src.printers.repository import PrinterRepository
 from src.printers.parsers import get_parser
 from src.printers import schemas, models
-from src.exceptions import PrinterNotFoundError, PrinterParseError
+from src.printers.exceptions import PrinterNotFoundError, PrinterParseError
 
 
 class PrinterService:
