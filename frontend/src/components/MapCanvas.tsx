@@ -42,10 +42,10 @@ export function MapCanvas({
 
     return (
 
-        <div className="relative">
+        <div className="relative w-full h-full flex flex-col items-center">
             {/* Подсказка НАД картой */}
             {isMoveMode && selectedPrinter && (
-                <div className="flex-shrink-0 z-30 ">
+                <div className="flex-shrink-0 z-30 mb-3">
                     <div
                         className="bg-amber-600 text-white text-sm font-medium px-5 py-2 rounded-full shadow-lg animate-pulse">
                         Кликните на карту, чтобы переместить «{selectedPrinter.name || selectedPrinter.ip}»
@@ -61,11 +61,11 @@ export function MapCanvas({
                     ${isMoveMode
                     ? "cursor-move border-amber-500/50 ring-2 ring-amber-500/20"
                     : isAddMode
-                        ? "cursor-crosshair border-zinc-700"
-                        : "cursor-crosshair border-zinc-700"
+                        ? "cursor-pointer border-zinc-700"
+                        : "cursor-default border-zinc-700"
                 }
                 `}
-                style={{width: "100%", maxWidth: "1200px", aspectRatio: "16/9"}}
+                style={{width: "100%", maxWidth: "1400px", aspectRatio: "16/9"}}
             >
                 {/* Фоновая сетка в режиме перемещения */}
                 {isMoveMode && (
@@ -101,7 +101,7 @@ export function MapCanvas({
                                 ? "scale-150 z-50 cursor-grabbing"
                                 : "hover:scale-125 cursor-pointer"
                             }
-                                ${isSelected && !isMoving ? "ring-2 ring-amber-500 rounded-full" : ""}
+                                ${isSelected && !isMoving ? "ring-2 ring-green-500 rounded-full" : ""}
                             `}
                             style={{left: `${printer.x}%`, top: `${printer.y}%`}}
                             onClick={(e) => {
@@ -113,12 +113,12 @@ export function MapCanvas({
                         >
                             <span className={`
                                 relative flex h-4 w-4 rounded-full border-2 border-zinc-900
-                                ${printer.status === 'online' ? 'bg-emerald-500' : 'bg-rose-500'}
-                                ${isMoving ? 'animate-bounce shadow-lg shadow-amber-500/50' : ''}
+                                ${printer.status === 'online' ? 'bg-green-500' : 'bg-rose-500'}
+                                ${isMoving ? 'animate-bounce shadow-lg shadow-green-500/50' : ''}
                             `}>
                                 {printer.status === 'online' && !isMoving && (
                                     <span
-                                        className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                        className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                 )}
                             </span>
 

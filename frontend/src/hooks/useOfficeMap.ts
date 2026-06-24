@@ -58,7 +58,7 @@ export function useOfficeMap() {
     const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
         const target = e.target as HTMLElement;
 
-        // Клик на маркер — выбор принтера
+        // Клик на маркер — выбор принтера, закрываем форму создания
         const marker = target.closest(".printer-marker") as HTMLElement | null;
         if (marker) {
             const printerId = marker.dataset.printerId;
@@ -68,8 +68,10 @@ export function useOfficeMap() {
                     // В режиме перемещения клик на маркер не выбирает, а ждёт клика на карту
                     setSelectedPrinter(printer);
                 } else {
+                    // При клике на принтер закрываем форму создания и показываем детали
                     setSelectedPrinter(printer);
                     setClickCoords(null);
+                    setMode("view");
                 }
             }
             return;
@@ -85,12 +87,10 @@ export function useOfficeMap() {
             return;
         }
 
-        // Обычный режим — добавление нового принтера
-        if (mode === "view" || mode === "add") {
-            setClickCoords(coords);
-            setSelectedPrinter(null);
-            setMode("add");
-        }
+        // Режим добавления — открываем форму создания принтера
+        setClickCoords(coords);
+        setSelectedPrinter(null);
+        setMode("add");
     };
 
     const handleMovePrinter = useCallback(async (id: string, x: number, y: number) => {

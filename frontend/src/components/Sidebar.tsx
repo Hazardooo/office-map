@@ -1,6 +1,6 @@
-import { PrinterForm } from "./PrinterForm";
-import { PrinterDetails } from "./PrinterDetails";
-import { Printer } from "@/lib/api";
+import {PrinterForm} from "./PrinterForm";
+import {PrinterDetails} from "./PrinterDetails";
+import {Printer} from "@/lib/api";
 
 interface SidebarProps {
     loading: boolean;
@@ -36,15 +36,12 @@ export function Sidebar({
                             onCancelMove,
                         }: SidebarProps) {
     return (
-        <aside className="w-80 bg-zinc-950 p-6 flex flex-col gap-6 border-r border-zinc-800 overflow-y-auto">
+        <aside
+            className="w-[425px] flex-shrink-0 bg-zinc-950 p-6 flex flex-col gap-6 border-r border-zinc-800 overflow-y-auto">
             <div className="flex justify-between items-start">
                 <div>
-                    <h1 className="text-xl font-bold tracking-tight mb-1">Мониторинг Принтеров</h1>
-                    <p className="text-xs text-zinc-400">Интерактивная карта офиса</p>
+                    <h1 className="text-xl font-bold tracking-tight mb-1">Мониторинг принтеров: {totalPrinters}</h1>
                 </div>
-                <span className="bg-zinc-800 text-zinc-300 text-xs px-2.5 py-1 rounded-full font-mono border border-zinc-700">
-                    {totalPrinters}
-                </span>
             </div>
 
             {/* Индикатор режима */}
