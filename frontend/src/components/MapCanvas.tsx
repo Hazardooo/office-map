@@ -113,10 +113,10 @@ export function MapCanvas({
                         >
                             <span className={`
                                 relative flex h-4 w-4 rounded-full border-2 border-zinc-900
-                                ${printer.status === 'online' ? 'bg-green-500' : 'bg-rose-500'}
+                                ${printer.is_online ? 'bg-green-500' : 'bg-rose-500'}
                                 ${isMoving ? 'animate-bounce shadow-lg shadow-green-500/50' : ''}
                             `}>
-                                {printer.status === 'online' && !isMoving && (
+                                {printer.is_online && !isMoving && (
                                     <span
                                         className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                 )}

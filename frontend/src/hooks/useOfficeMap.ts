@@ -65,10 +65,8 @@ export function useOfficeMap() {
             const printer = printers.find(p => p.id === printerId);
             if (printer) {
                 if (mode === "move") {
-                    // В режиме перемещения клик на маркер не выбирает, а ждёт клика на карту
                     setSelectedPrinter(printer);
                 } else {
-                    // При клике на принтер закрываем форму создания и показываем детали
                     setSelectedPrinter(printer);
                     setClickCoords(null);
                     setMode("view");
@@ -82,12 +80,10 @@ export function useOfficeMap() {
         if (!coords) return;
 
         if (mode === "move" && selectedPrinter) {
-            // Перемещаем выбранный принтер
             handleMovePrinter(selectedPrinter.id, coords.x, coords.y);
             return;
         }
 
-        // Режим добавления — открываем форму создания принтера
         setClickCoords(coords);
         setSelectedPrinter(null);
         setMode("add");
@@ -170,6 +166,16 @@ export function useOfficeMap() {
         }
     }, []);
 
+    const handleRename = useCallback(async (id: string, newName: string) => {
+        try {
+            const updated = await api.updatePrinter(id, {name: newName});
+            setSelectedPrinter(updated);
+            loadPrinters();
+        } catch (err) {
+            alert("Не удалось переименовать принтер.");
+        }
+    }, []);
+
     return {
         printers,
         totalPrinters,
@@ -191,5 +197,6 @@ export function useOfficeMap() {
         handleDelete,
         handleStartMove,
         handleCancelMove,
+        handleRename,
     };
 }

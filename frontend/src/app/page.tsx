@@ -25,6 +25,7 @@ export default function OfficeMapPage() {
         handleDelete,
         handleStartMove,
         handleCancelMove,
+        handleRename,
     } = useOfficeMap();
 
     return (
@@ -44,6 +45,7 @@ export default function OfficeMapPage() {
                 onDelete={handleDelete}
                 onStartMove={handleStartMove}
                 onCancelMove={handleCancelMove}
+                onRename={handleRename}
             />
 
             <main className="flex-1 flex flex-col items-center justify-center p-8 bg-zinc-900 overflow-auto relative">

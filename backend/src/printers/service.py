@@ -15,7 +15,16 @@ class PrinterService:
 
     async def create(self, data: schemas.PrinterCreate) -> models.Printer:
         parser = get_parser(data.vendor, data.ip)
-        parsed = await asyncio.to_thread(parser.get_status)
+
+        try:
+            parsed = await asyncio.wait_for(
+                asyncio.to_thread(parser.get_status),
+                timeout=20.0
+            )
+        except asyncio.TimeoutError:
+            raise PrinterParseError("Таймаут при опросе принтера")
+        except Exception as e:
+            raise PrinterParseError(f"Ошибка подключения: {str(e)}")
 
         if "error" in parsed:
             raise PrinterParseError(parsed["error"])
@@ -37,10 +46,19 @@ class PrinterService:
             raise PrinterNotFoundError(f"Принтер {printer_id} не найден")
 
         parser = get_parser(printer.vendor, printer.ip)
-        parsed = await asyncio.to_thread(parser.get_status)
+
+        try:
+            parsed = await asyncio.wait_for(
+                asyncio.to_thread(parser.get_status),
+                timeout=20.0
+            )
+        except asyncio.TimeoutError:
+            return await self.repo.set_offline(printer)
+        except Exception:
+            return await self.repo.set_offline(printer)
 
         if "error" in parsed:
-            raise PrinterParseError(parsed["error"])
+            return await self.repo.set_offline(printer)
 
         return await self.repo.refresh_toner(printer, parsed)
 

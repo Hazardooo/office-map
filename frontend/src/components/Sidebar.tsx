@@ -17,6 +17,7 @@ interface SidebarProps {
     onDelete: (id: string) => void;
     onStartMove: () => void;
     onCancelMove: () => void;
+    onRename: (id: string, newName: string) => void;
 }
 
 export function Sidebar({
@@ -34,6 +35,7 @@ export function Sidebar({
                             onDelete,
                             onStartMove,
                             onCancelMove,
+                            onRename,
                         }: SidebarProps) {
     return (
         <aside
@@ -90,6 +92,7 @@ export function Sidebar({
                     onRefresh={onRefresh}
                     onDelete={onDelete}
                     onMove={onStartMove}
+                    onRename={onRename}
                 />
             )}
         </aside>

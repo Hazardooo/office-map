@@ -1,20 +1,62 @@
 import {Printer} from "@/lib/api";
+import {useState} from "react";
 
 interface PrinterDetailsProps {
     printer: Printer;
     onRefresh: (id: string) => void;
     onDelete: (id: string) => void;
     onMove: () => void;
+    onRename: (id: string, newName: string) => void;
 }
 
-export function PrinterDetails({printer, onRefresh, onDelete, onMove}: PrinterDetailsProps) {
+export function PrinterDetails({printer, onRefresh, onDelete, onMove, onRename}: PrinterDetailsProps) {
+    const [isEditing, setIsEditing] = useState(false);
+    const [editName, setEditName] = useState(printer.name || "");
+
+    const handleSave = () => {
+        onRename(printer.id, editName.trim());
+        setIsEditing(false);
+    };
+
+    const handleCancel = () => {
+        setEditName(printer.name || "");
+        setIsEditing(false);
+    };
+
     return (
         <div className="card-container">
             <div className="flex justify-between items-start mb-1">
-                <h3 className="font-bold text-zinc-100">{printer.name || "Без имени"}</h3>
+                {isEditing ? (
+                    <div className="flex-1 mr-2">
+                        <input
+                            type="text"
+                            value={editName}
+                            onChange={e => setEditName(e.target.value)}
+                            className="form-input text-sm font-bold"
+                            placeholder="Название принтера"
+                            autoFocus
+                            onKeyDown={e => {
+                                if (e.key === 'Enter') handleSave();
+                                if (e.key === 'Escape') handleCancel();
+                            }}
+                        />
+                        <div className="flex gap-2 mt-2">
+                            <button onClick={handleSave} className="btn-primary text-xs py-1">Сохранить</button>
+                            <button onClick={handleCancel} className="btn-secondary text-xs py-1">Отмена</button>
+                        </div>
+                    </div>
+                ) : (
+                    <h3
+                        className="font-bold text-zinc-100 cursor-pointer hover:text-amber-400 transition-colors"
+                        onClick={() => setIsEditing(true)}
+                        title="Кликните для редактирования"
+                    >
+                        {printer.name || "Без имени"}
+                    </h3>
+                )}
                 <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${printer.status === 'online' ? 'bg-green-950 text-green-400 border border-green-800' : 'bg-red-950 text-red-400 border border-red-800'}`}>
-                    {printer.status}
+                    className={`... ${printer.is_online ? 'bg-green-950 text-green-400' : 'bg-red-950 text-red-400'}`}>
+                        {printer.is_online ? 'online' : 'offline'}
                 </span>
             </div>
 
@@ -62,7 +104,7 @@ export function PrinterDetails({printer, onRefresh, onDelete, onMove}: PrinterDe
                 )}
             </div>
 
-            <div className="grid grid-cols-2 gap-2 mt-4">
+            <div className="grid grid-cols-1 gap-2 mt-4">
                 <button
                     onClick={() => onRefresh(printer.id)}
                     className="btn-primary text-xs"
@@ -73,7 +115,7 @@ export function PrinterDetails({printer, onRefresh, onDelete, onMove}: PrinterDe
                     onClick={onMove}
                     className="btn-secondary text-xs"
                 >
-                    Переместить
+                    Редактировать
                 </button>
                 <button
                     onClick={() => onDelete(printer.id)}

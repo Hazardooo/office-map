@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Float, DateTime, Integer
+from sqlalchemy import Column, String, Float, DateTime, Integer, Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from src.database import Base
 
@@ -24,7 +24,7 @@ class Printer(Base):
     toner_cyan = Column(Integer, nullable=True)
     toner_magenta = Column(Integer, nullable=True)
     toner_yellow = Column(Integer, nullable=True)
-    status = Column(String(100), default="unknown")
+    is_online = Column(Boolean, default=False)
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

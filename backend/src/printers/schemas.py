@@ -17,7 +17,6 @@ class PrinterUpdate(BaseModel):
     hostname: Optional[str] = None
     x: Optional[float] = None
     y: Optional[float] = None
-    status: Optional[str] = None
 
 
 class PrinterResponse(BaseModel):
@@ -34,7 +33,7 @@ class PrinterResponse(BaseModel):
     toner_cyan: Optional[int] = None
     toner_magenta: Optional[int] = None
     toner_yellow: Optional[int] = None
-    status: str
+    is_online: bool
 
     class Config:
         from_attributes = True

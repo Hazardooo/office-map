@@ -38,6 +38,9 @@ class PrinterRepository:
     async def create(self, data: schemas.PrinterCreate, parsed: dict) -> models.Printer:
         toner = parsed.get("toner", {})
 
+        # is_online определяется по результату парсинга
+        is_online = "error" not in parsed
+
         db_printer = models.Printer(
             name=data.name or parsed.get("hostname") or parsed.get("model") or f"Printer {data.ip}",
             ip=data.ip,
@@ -51,7 +54,7 @@ class PrinterRepository:
             toner_cyan=self._parse_toner(toner, "Голубой"),
             toner_magenta=self._parse_toner(toner, "Пурпурный"),
             toner_yellow=self._parse_toner(toner, "Желтый"),
-            status=parsed.get("status", "unknown"),
+            is_online=is_online,
         )
         self.db.add(db_printer)
         await self.db.commit()
@@ -73,10 +76,19 @@ class PrinterRepository:
         printer.toner_magenta = self._parse_toner(toner, "Пурпурный")
         printer.toner_yellow = self._parse_toner(toner, "Желтый")
 
-        printer.status = parsed.get("status", "unknown")
+        # is_online обновляем на основе результата парсинга
+        printer.is_online = "error" not in parsed
+
         if parsed.get("serial_number"):
             printer.serial_number = parsed.get("serial_number")
 
+        await self.db.commit()
+        await self.db.refresh(printer)
+        return printer
+
+    async def set_offline(self, printer: models.Printer) -> models.Printer:
+        """Устанавливает is_online=False при ошибке парсинга."""
+        printer.is_online = False
         await self.db.commit()
         await self.db.refresh(printer)
         return printer
