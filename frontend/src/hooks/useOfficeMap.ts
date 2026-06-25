@@ -1,7 +1,7 @@
 "use client";
 
 import {useState, useEffect, useRef, useCallback} from "react";
-import {api, Printer, BASE_URL, PrinterListResponse} from "@/lib/api";
+import {api, Printer, BASE_URL, PrinterListResponse} from "@/service/api";
 
 type Mode = "view" | "add" | "move";
 
