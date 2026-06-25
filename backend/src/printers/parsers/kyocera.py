@@ -1,9 +1,9 @@
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from bs4 import BeautifulSoup
-import time
 from typing import Dict
+
+from bs4 import BeautifulSoup
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from src.printers.parsers.base import BasePrinterParser
 from src.printers.parsers.pool import get_pool
@@ -19,7 +19,7 @@ class KyoceraParser(BasePrinterParser):
             return {"error": "Нет доступных драйверов"}
 
         try:
-            driver.get(f"{self.base_url}/wlmpor/index.htm")
+            driver.get(f"{self.base_url}")
 
             WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.NAME, "wlmframe"))
@@ -66,7 +66,7 @@ class KyoceraParser(BasePrinterParser):
                 pass
             pool.release(driver)
 
-    def get_status(self) -> Dict[str, str]:
+    def get_status(self) -> dict[str, str] | dict[str, str | dict[str, str]]:
         toner = self.get_toner()
         if "error" in toner:
             return toner
@@ -74,4 +74,4 @@ class KyoceraParser(BasePrinterParser):
             "model": "ECOSYS P3060dn",
             "hostname": "Unknown",
             "toner": toner
-        }
+            }
