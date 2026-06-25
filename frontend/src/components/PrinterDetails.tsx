@@ -1,4 +1,4 @@
-import {Printer} from "@/lib/api";
+import {Printer} from "@/service/api";
 import {useState} from "react";
 
 interface PrinterDetailsProps {

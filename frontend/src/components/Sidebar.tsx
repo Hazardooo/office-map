@@ -1,6 +1,6 @@
 import {PrinterForm} from "./PrinterForm";
 import {PrinterDetails} from "./PrinterDetails";
-import {Printer} from "@/lib/api";
+import {Printer} from "@/service/api";
 
 interface SidebarProps {
     loading: boolean;

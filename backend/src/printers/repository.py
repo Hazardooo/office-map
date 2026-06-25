@@ -46,8 +46,6 @@ class PrinterRepository:
             ip=data.ip,
             vendor=data.vendor,
             model=parsed.get("model"),
-            hostname=parsed.get("hostname"),
-            serial_number=parsed.get("serial_number"),
             x=data.x,
             y=data.y,
             toner_black=self._parse_toner(toner, "Черный", 100),

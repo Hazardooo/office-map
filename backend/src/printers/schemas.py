@@ -14,7 +14,6 @@ class PrinterCreate(BaseModel):
 class PrinterUpdate(BaseModel):
     name: Optional[str] = None
     model: Optional[str] = None
-    hostname: Optional[str] = None
     x: Optional[float] = None
     y: Optional[float] = None
 
@@ -25,8 +24,6 @@ class PrinterResponse(BaseModel):
     ip: str
     vendor: str
     model: Optional[str] = None
-    hostname: Optional[str] = None
-    serial_number: Optional[str] = None
     x: float
     y: float
     toner_black: int

@@ -1,28 +1,19 @@
-from typing import Dict
-
+# src/printers/parsers/base.py
+from typing import Dict, Any
 
 class BasePrinterParser:
     """Базовый класс для всех парсеров принтеров."""
 
     def __init__(self, ip: str):
         self.ip = ip
-        self.base_url = f"https://{ip}"
+        # Большинство принтеров используют HTTP, если Kyocera строго HTTPS — можно переопределить в классе
+        self.base_url = f"http://{ip}"
 
-    def get_toner(self) -> Dict[str, str]:
-        """Возвращает {цвет: процент}."""
-        raise NotImplementedError("Метод get_toner должен быть реализован")
+    def get_status(self) -> Dict[str, Any]:
+        """Возвращает полный статус принтера."""
+        raise NotImplementedError("Метод get_status должен быть реализован в подклассах")
 
-    def get_status(self) -> Dict[str, str]:
-        """Возвращает полный статус."""
-        # По умолчанию — просто тонер
-        toner = self.get_toner()
-        if "error" in toner:
-            return toner
-        return {
-            "model": "Unknown",
-            "hostname": "Unknown",
-            "toner": toner
-        }
-
-    def _make_url(self, path: str) -> str:
-        return f"{self.base_url}{path}"
+    def _set_driver_timeouts(self, driver):
+        """Устанавливает лимиты времени, чтобы Selenium не зависал на битых хостах."""
+        driver.set_page_load_timeout(20)
+        driver.set_script_timeout(20)

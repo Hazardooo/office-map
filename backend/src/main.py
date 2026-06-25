@@ -15,8 +15,8 @@ _scheduler: PrinterScheduler | None = None
 async def lifespan(app: FastAPI):
     global _scheduler
     _scheduler = PrinterScheduler(
-        max_concurrent=10,
-        pool_size=7,
+        max_concurrent=8,
+        pool_size=8,
         interval_minutes=5
     )
     _scheduler.start()

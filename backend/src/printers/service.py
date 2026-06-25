@@ -1,3 +1,4 @@
+# src/printers/service.py
 import asyncio
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,17 +15,24 @@ class PrinterService:
         self.repo = PrinterRepository(db)
 
     async def create(self, data: schemas.PrinterCreate) -> models.Printer:
+        # Проверяем уникальность IP на уровне бизнес-логики
+        existing_printer = await self.repo.get_by_ip(data.ip)
+        if existing_printer:
+            raise PrinterParseError(
+                f"Принтер с IP-адресом {data.ip} уже зарегистрирован под именем '{existing_printer.name}'")
+
         parser = get_parser(data.vendor, data.ip)
 
         try:
+            # Увеличен таймаут до 60 секунд для медленных физических принтеров
             parsed = await asyncio.wait_for(
                 asyncio.to_thread(parser.get_status),
-                timeout=20.0
+                timeout=60.0
             )
         except asyncio.TimeoutError:
-            raise PrinterParseError("Таймаут при опросе принтера")
+            raise PrinterParseError(f"Таймаут опроса принтера ({data.ip}). Устройство слишком долго отвечает.")
         except Exception as e:
-            raise PrinterParseError(f"Ошибка подключения: {str(e)}")
+            raise PrinterParseError(f"Ошибка сетевого подключения к принтеру: {str(e)}")
 
         if "error" in parsed:
             raise PrinterParseError(parsed["error"])
@@ -37,24 +45,22 @@ class PrinterService:
     async def update(self, printer_id: UUID, data: schemas.PrinterUpdate) -> models.Printer:
         printer = await self.repo.get_by_id(printer_id)
         if not printer:
-            raise PrinterNotFoundError(f"Принтер {printer_id} не найден")
+            raise PrinterNotFoundError(f"Принтер с ID {printer_id} не найден")
         return await self.repo.update(printer, data)
 
     async def refresh(self, printer_id: UUID) -> models.Printer:
         printer = await self.repo.get_by_id(printer_id)
         if not printer:
-            raise PrinterNotFoundError(f"Принтер {printer_id} не найден")
+            raise PrinterNotFoundError(f"Принтер с ID {printer_id} не найден")
 
         parser = get_parser(printer.vendor, printer.ip)
 
         try:
             parsed = await asyncio.wait_for(
                 asyncio.to_thread(parser.get_status),
-                timeout=20.0
+                timeout=60.0
             )
-        except asyncio.TimeoutError:
-            return await self.repo.set_offline(printer)
-        except Exception:
+        except (asyncio.TimeoutError, Exception):
             return await self.repo.set_offline(printer)
 
         if "error" in parsed:
@@ -65,5 +71,5 @@ class PrinterService:
     async def delete(self, printer_id: UUID) -> None:
         printer = await self.repo.get_by_id(printer_id)
         if not printer:
-            raise PrinterNotFoundError(f"Принтер {printer_id} не найден")
+            raise PrinterNotFoundError(f"Принтер с ID {printer_id} не найден")
         await self.repo.delete(printer)

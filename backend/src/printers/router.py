@@ -1,6 +1,6 @@
 from uuid import UUID
+
 from fastapi import APIRouter, Depends
-from typing import List
 
 from src.printers import schemas
 from src.printers.dependencies import get_printer_service

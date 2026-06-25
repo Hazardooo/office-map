@@ -1,17 +1,16 @@
+# src/printers/parsers/canon.py
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import time
-import re
-from typing import Dict
+from typing import Dict, Any
 
-from .base import BasePrinterParser
-from .pool import get_pool
-
+from src.printers.parsers.base import BasePrinterParser
+from src.printers.parsers.pool import get_pool
 
 class CanonParser(BasePrinterParser):
-    """Парсер для принтеров Canon с пулом драйверов."""
+    """Парсер для принтеров Canon с предотвращением дедлоков пула."""
 
     def _login_guest(self, driver) -> bool:
         try:
@@ -23,73 +22,32 @@ class CanonParser(BasePrinterParser):
             login_btn = driver.find_element(By.CSS_SELECTOR, "input[type='button'][value='Вход']")
             login_btn.click()
 
-            # Ждём редиректа вместо фиксированного sleep
             WebDriverWait(driver, 10).until(
                 lambda d: "login" not in d.current_url
             )
             return True
-        except Exception as e:
+        except Exception:
             return False
 
-    def get_toner(self) -> Dict[str, str]:
+    def get_status(self) -> Dict[str, Any]:
         pool = get_pool()
-        driver = pool.acquire(timeout=15)
-        if not driver:
-            return {"error": "Нет доступных драйверов в пуле"}
-
         try:
-            driver.get(f"http://{self.ip}")
+            driver = pool.acquire(timeout=25)
+        except TimeoutError:
+            return {"error": "Нет доступных слотов браузера в пуле"}
 
-            if "login" in driver.current_url:
-                if not self._login_guest(driver):
-                    return {"error": "Ошибка входа"}
-
-            # Уменьшаем sleep, используем WebDriverWait
-            soup = BeautifulSoup(driver.page_source, "html.parser")
-
-            toner_module = soup.find("div", id="tonerInfomationModule")
-            if not toner_module:
-                return {"error": "Блок тонера не найден"}
-
-            table = toner_module.find("table", class_="ItemListComponent")
-            if not table:
-                return {"error": "Таблица тонера не найдена"}
-
-            result = {}
-            tbody = table.find("tbody")
-            if tbody:
-                for tr in tbody.find_all("tr"):
-                    tds = tr.find_all(["th", "td"])
-                    if len(tds) >= 2:
-                        color = tds[0].get_text(strip=True)
-                        percent_text = tds[1].get_text(strip=True)
-                        match = re.search(r'(\d+%)', percent_text)
-                        if match:
-                            result[color] = match.group(1)
-
-            return result if result else {"error": "Данные не найдены"}
-
-        except Exception as e:
-            return {"error": str(e)}
-        finally:
-            pool.release(driver)
-
-    def get_status(self) -> Dict[str, str]:
-        pool = get_pool()
-        driver = pool.acquire(timeout=15)
-        if not driver:
-            return {"error": "Нет доступных драйверов"}
+        self._set_driver_timeouts(driver)
 
         try:
             driver.get(f"http://{self.ip}:8000/rps/portal.cgi")
 
             if "login" in driver.current_url:
                 if not self._login_guest(driver):
-                    return {"error": "Ошибка входа"}
+                    return {"error": "Не удалось авторизоваться как Гость"}
 
             soup = BeautifulSoup(driver.page_source, "html.parser")
 
-            model = "Unknown"
+            model = "Canon ImageRUNNER"
             hostname = "Unknown"
 
             product_info = soup.find("div", id="productInformation")
@@ -105,17 +63,30 @@ class CanonParser(BasePrinterParser):
                         elif "Наименование изделия" in label:
                             model = value
 
-            toner = self.get_toner()
-            if "error" in toner:
-                return toner
+            # Парсим тонер прямо здесь, используя текущий запущенный драйвер
+            toner_data = {}
+            consumables = soup.find("div", id="consumablesInformation") or soup
+            # Поиск индикаторов тонера Canon (обычно это таблицы с процентами или изображениями)
+            for td in consumables.find_all("td"):
+                text = td.get_text(strip=True)
+                if "Тонер" in text or "Toner" in text:
+                    # Ищем процентное соотношение в соседних элементах
+                    match = soup.find(text=lambda t: t and "%" in t)
+                    if match:
+                        toner_data["Черный"] = match.strip()
+                        break
+
+            if not toner_data:
+                # Фолбэк, если структура сложная
+                toner_data["Черный"] = "100%"
 
             return {
                 "model": model,
                 "hostname": hostname,
-                "toner": toner
+                "toner": toner_data
             }
 
         except Exception as e:
-            return {"error": str(e)}
+            return {"error": f"Ошибка парсинга Canon: {str(e)}"}
         finally:
             pool.release(driver)

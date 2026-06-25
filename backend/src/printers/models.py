@@ -14,8 +14,6 @@ class Printer(Base):
     vendor = Column(String(20), nullable=False)
 
     model = Column(String(100))
-    hostname = Column(String(100))
-    serial_number = Column(String(100))
 
     x = Column(Float, nullable=False)
     y = Column(Float, nullable=False)

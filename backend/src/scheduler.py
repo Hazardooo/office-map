@@ -8,7 +8,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 
 from src.database import AsyncSessionLocal
 from src.printers import models
-from src.printers.parsers.pool import init_pool, shutdown_pool
+from src.printers.parsers.pool import init_pool
 from src.printers.service import PrinterService
 
 logger = logging.getLogger(__name__)
@@ -27,39 +27,48 @@ class PrinterScheduler:
             service = PrinterService(session)
             printers: List[models.Printer] = await service.get_all()
 
-        if not printers:
+            # Извлекаем данные в простые типы ПРИ ЖИВОЙ сессии,
+            # чтобы избежать DetachedInstanceError в параллельных задачах
+            printers_data = [(p.id, p.ip) for p in printers]
+
+        if not printers_data:
             logger.info("Нет принтеров для опроса")
             return
 
-        logger.info(f"Начинаю опрос {len(printers)} принтеров (max {self.semaphore._value} одновременно)...")
+        logger.info(f"Начинаю фоновый опрос {len(printers_data)} принтеров...")
 
-        tasks = [self._refresh_single(p) for p in printers]
+        # Передаем id и ip раздельно в качестве атомарных значений
+        tasks = [self._refresh_single(p_id, p_ip) for p_id, p_ip in printers_data]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         success = sum(1 for r in results if r is True)
-        failed = sum(1 for r in results if r is False)
-        errors = [r for r in results if isinstance(r, Exception)]
+        failed = sum(1 for r in results if r is False or isinstance(r, Exception))
 
-        logger.info(f"Опрос завершён: {success} успешно, {failed} ошибок")
-        for e in errors:
-            logger.error(f"Исключение: {e}")
+        logger.info(f"Фоновый опрос завершён: {success} успешно, {failed} ошибок")
 
-    async def _refresh_single(self, printer: models.Printer) -> bool:
+    async def _refresh_single(self, printer_id, printer_ip: str) -> bool:
         """Каждый принтер — изолированная сессия + ограничение concurrency."""
         async with self.semaphore:
             async with AsyncSessionLocal() as session:
                 service = PrinterService(session)
                 try:
-                    await service.refresh(printer.id)  # printer.id теперь UUID
-                    logger.debug(f"✅ {printer.ip} — обновлён")
+                    # Сервис выполняет парсинг по ID
+                    updated_printer = await service.refresh(printer_id)
+
+                    # Проверяем статус через возвращенный из свежей сессии объект
+                    if updated_printer and not updated_printer.is_online:
+                        logger.warning(f"❌ Принтер {printer_ip} не обновился (переведен в offline из-за ошибки)")
+                        return False
+
+                    logger.info(f"✅ Принтер {printer_ip} успешно обновлен планировщиком.")
                     return True
                 except Exception as e:
-                    logger.warning(f"❌ {printer.ip} — {e}")
+                    logger.error(f"❌ Критическая ошибка при опросе {printer_ip}: {e}")
                     return False
 
     def start(self):
         init_pool(max_drivers=self.pool_size)
-        logger.info(f"Пул Selenium: {self.pool_size} драйверов")
+        logger.info(f"Пул Selenium инициализирован: {self.pool_size} драйверов")
 
         self.scheduler.add_job(
             func=self._refresh_all,
@@ -70,9 +79,7 @@ class PrinterScheduler:
             next_run_time=datetime.now(),
         )
         self.scheduler.start()
-        logger.info(f"Планировщик запущен: интервал {self.interval_minutes} мин")
+        logger.info(f"Планировщик запущен с интервалом {self.interval_minutes} мин.")
 
     def shutdown(self):
         self.scheduler.shutdown()
-        shutdown_pool()
-        logger.info("Планировщик и пул остановлены")

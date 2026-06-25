@@ -1,5 +1,5 @@
 import {RefObject} from "react";
-import {Printer} from "@/lib/api";
+import {Printer} from "@/service/api";
 
 interface MapCanvasProps {
     mapUrl: string | null;
