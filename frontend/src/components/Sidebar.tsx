@@ -88,6 +88,7 @@ export function Sidebar({
 
             {selectedPrinter && mode !== "move" && (
                 <PrinterDetails
+                    key={selectedPrinter.id}
                     printer={selectedPrinter}
                     onRefresh={onRefresh}
                     onDelete={onDelete}

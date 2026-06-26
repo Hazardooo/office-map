@@ -26,6 +26,7 @@ export default function OfficeMapPage() {
         handleStartMove,
         handleCancelMove,
         handleRename,
+        handleSelectPrinter
     } = useOfficeMap();
 
     return (
@@ -57,7 +58,7 @@ export default function OfficeMapPage() {
                     onMapClick={handleMapClick}
                     onMapUpload={handleMapUpload}
                     printers={printers}
-                    onSelectPrinter={setSelectedPrinter}
+                    onSelectPrinter={handleSelectPrinter}
                     clickCoords={clickCoords}
                 />
             </main>

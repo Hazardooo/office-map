@@ -59,9 +59,18 @@ export function PrinterDetails({printer, onRefresh, onDelete, onMove, onRename}:
                         {printer.is_online ? 'online' : 'offline'}
                 </span>
             </div>
-
             <div className="space-y-1 text-xs text-zinc-300 font-mono mb-4">
-                <p><span className="text-zinc-500">IP:</span> {printer.ip}</p>
+                <p>
+                    <span className="text-zinc-500">IP:</span>{' '}
+                    <a
+                        href={`http://${printer.ip}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-amber-500 hover:text-amber-400 underline decoration-amber-500/30 hover:decoration-amber-400 transition-colors"
+                    >
+                        {printer.ip}
+                    </a>
+                </p>
                 <p><span className="text-zinc-500">Бренд:</span> {printer.vendor.toUpperCase()}</p>
                 {printer.model && <p><span className="text-zinc-500">Модель:</span> {printer.model}</p>}
                 <p><span className="text-zinc-500">Позиция:</span> X:{printer.x}% Y:{printer.y}%</p>

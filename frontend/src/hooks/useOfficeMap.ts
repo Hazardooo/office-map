@@ -151,6 +151,16 @@ export function useOfficeMap() {
         setClickCoords(null);
     };
 
+    // === 1. ДОБАВЛЯЕМ ЭТУ ФУНКЦИЮ ===
+    const handleSelectPrinter = useCallback((printer: Printer | null) => {
+        setSelectedPrinter(printer);
+        // Если мы кликнули на принтер — принудительно гасим желтую метку и выходим из режима добавления
+        if (printer) {
+            setClickCoords(null);
+            setMode("view");
+        }
+    }, []);
+
     return {
         printers,
         totalPrinters,
@@ -173,5 +183,6 @@ export function useOfficeMap() {
         handleStartMove,
         handleCancelMove,
         handleRename,
+        handleSelectPrinter
     };
 }
