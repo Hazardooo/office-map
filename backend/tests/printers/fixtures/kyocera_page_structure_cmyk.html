@@ -1,0 +1,1398 @@
+=== ГЛАВНЫЙ ДОКУМЕНТ (TOP LEVEL) ===
+Title: 
+<html dir="ltr"><head>
+
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta name="viewport" content="width=device-width, minimum-scale=0.1, maximum-scale=5.0, user-scalable=yes">
+
+<script src="../js/lib/knockout-2.3.0.js"></script>
+<script src="../strings/stub/stub.js"></script>
+
+<script src="../js/jssrc/base.js"></script>
+<script src="../js/jssrc/model/wlmpor/index.model.htm"></script>
+<script src="../js/jssrc/view_model/wlmpor/index.viewmodel.js"></script>
+
+</head>
+
+<frameset border="0" frameborder="no" framespacing="0">
+<frame name="wlmframe" src="../startwlm/Start_Wlm.htm">
+</frameset>
+
+
+</html>
+
+==================================================
+
+=== СОДЕРЖИМОЕ ФРЕЙМА: wlmframe ===
+<html id="ccrx-root" dir="ltr"><head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<title>P001_Home_Frame</title>
+<link rel="stylesheet" href="../css/mainBase.css">
+<link rel="stylesheet" href="../css/common.css">
+<script src="../js/lib/knockout-2.3.0.js"></script>
+<script src="/strings/rus/rus.js" data-bind="attr: { src: languageStringsUrl }"></script>
+<script src="../js/jssrc/base.js"></script>
+<script src="../js/jssrc/model/startwlm/Device_Config.model.htm"></script>
+<script src="../js/jssrc/model/startwlm/Start_Wlm.model.htm?arg1=&amp;arg2=&amp;arg3=&amp;arg4=&amp;arg5=&amp;arg6=&amp;arg8=&amp;arg9=&amp;arg10=0&amp;arg11="></script>
+</head>
+<body id="main" style="width: 100%; height: 1600px;" data-bind="visible: allVisible &amp;&amp; wlmframeVisible, style: mainStyle">
+<!-- ko if: isIE --><!-- /ko -->
+
+<form action="../startwlm/login.cgi" method="post" id="login" name="login" autocomplete="off" data-bind="submit: Validate">
+
+<input type="hidden" name="failhtmfile" data-bind="value: failhtmlfileValue" value="/startwlm/Start_Wlm.htm">
+<input type="hidden" name="okhtmfile" data-bind="value: okhtmlfileValue" value="/startwlm/Start_Wlm.htm">
+<input type="hidden" name="func" data-bind="value: funcValue" value="authLogin">
+
+<input type="hidden" id="arg03_LoginType" name="arg03_LoginType" data-bind="value: arg03_LoginTypeValue" value="_mode_off">
+
+<input type="hidden" name="arg04_LoginFrom" data-bind="value: arg04_LoginFromValue" value="_wlm_login">
+<input type="hidden" name="hidden" value="" data-bind="value: hiddenvalue">
+
+<div id="maindivindex" data-bind="style: maindivindexStyle" style="width: 799px; height: 1100px; margin: 0px auto; text-align: left;">
+
+<div id="header">
+<!-- ko if: logoImgVisible --><img class="header_KyoceraLogo" src="../images/KyoceraLogo.png"><!-- /ko -->
+<!-- ko if: logoImgVisible --><img class="header_CommandCenterLogo" src="../images/CommandCenterLogo.png"><!-- /ko -->
+<!-- ko if: printlgImgVisible --><img class="printlg" data-bind="attr: { src: printlgImgSrc }" src="../images/EcosysLogo.png"><!-- /ko -->
+<div class="header_info" id="basicinfo">
+<table style="table-layout: fixed; border-collapse: collapse; width: 100%;">
+<tbody>
+<tr>
+<td nowrap="" id="info" colspan="4" data-bind="text: mes()[0] + ' : ' + getHeaderInfo(1)">Модель : ECOSYS M5521cdn</td>
+</tr>
+<tr>
+<td nowrap="" id="info" colspan="4" data-bind="text: mes()[1] + ' : ' + getHeaderInfo(2)">Имя хоста : Print-C...</td>
+</tr>
+<tr>
+<td nowrap="" id="info" colspan="4" data-bind="text: mes()[2] + ' : ' + getHeaderInfo(3)">Местоположение : </td>
+</tr>
+</tbody>
+</table>
+<!-- ko if : dispHeaderInfoTip().disp -->
+<span style="background-color: gray; width: 375px;" data-bind="style : { width:dispHeaderInfoTip().width }">
+<table><tbody>
+<tr>
+<td nowrap="" id="info" colspan="4" data-bind="text: mes()[0] + ' : ' + f_getPrinterModel">Модель : ECOSYS M5521cdn</td>
+</tr>
+<tr>
+<td nowrap="" id="info" colspan="4" data-bind="text: mes()[1] + ' : ' + f_getHostName">Имя хоста : Print-CO-BychkovaMFU</td>
+</tr>
+<tr>
+<td nowrap="" id="info" colspan="4" data-bind="text: mes()[2] + ' : ' + f_getSNMPSysLocation">Местоположение : </td>
+</tr>
+</tbody></table>
+</span>
+<!-- /ko -->
+</div>
+</div>
+
+<br>
+
+<div id="homeset" data-bind="visible: homesetVisible">
+<div id="home">
+<table cellpadding="0" cellspacing="0" border="0">
+<tbody><tr height="30px" align="center" valign="middle">
+<td width="1%">&nbsp;</td>
+<td width="4%"><img width="32px" height="32px" src="../images/househome.png" alt=""></td>
+<td align="left" data-bind="attr: { width: homeHrefTdWidth }" width="25%">&nbsp;&nbsp;<a data-bind="attr: { href: homeHref }" target="_top" href="http://10.100.0.79/wlmpor/index.htm"><strong data-bind="text: mes()[2634]">Главный экран</strong></a></td>
+<td width="3%" align="right" valign="middle">
+<select name="language" id="SelLanguage" style="left:280px; top:79px; width:150px; height:22px; ; ; text-align: left ; font-family:Arial; font-size: 13px; color:#000000; font-style:normal; font-weight:normal; text-decoration:none" data-bind="options: getSelectedLanguage(), optionsText: 'text', optionsValue: 'value', value: selectedLanguage"><option value="http://10.100.0.79/wlmdeu/index.htm">Deutsch</option><option value="http://10.100.0.79/wlmeng/index.htm">English</option><option value="http://10.100.0.79/wlmesp/index.htm">Español</option><option value="http://10.100.0.79/wlmfra/index.htm">Français</option><option value="http://10.100.0.79/wlmita/index.htm">Italiano</option><option value="http://10.100.0.79/wlmned/index.htm">Nederlands</option><option value="http://10.100.0.79/wlmpor/index.htm">Русский</option><option value="http://10.100.0.79/wlmjpn/index.htm">日本語</option><option value="http://10.100.0.79/opt1/index.htm">Dansk</option><option value="http://10.100.0.79/opt2/index.htm">Svenska</option><option value="http://10.100.0.79/opt3/index.htm">Norsk</option><option value="http://10.100.0.79/opt4/index.htm">Português</option><option value="http://10.100.0.79/opt5/index.htm">Türkçe</option></select>
+</td>
+<td width="6%" valign="middle"><img width="3%" height="40px" src="../images/verticallineBlack.png" alt=""></td>
+<td align="left" width="1%"><input type="checkbox" class="medium" id="Auto" data-bind="checked: isAutoChecked, attr: AutoAttributes"></td>
+<td align="left" width="14%" data-bind="text: mes()[3]">Автообновление</td>
+<td width="6%" align="center" valign="middle"><img width="3%" height="40px" src="../images/verticallineBlack.png" alt=""></td>
+<td align="left" width="20%"><!-- ko text: mes()[4] + ' :' -->Последнее обновление :<!-- /ko --><br><div id="lastupdate" data-bind="text: lastUpdate">2026/06/25 16:34:24</div></td>
+<td width="4%" align="center"><img width="32px" height="32px" id="refleshimagefront" src="../images/refresh.png" title="Обновить" style="cursor: hand;cursor:pointer;" data-bind="click: RefreshImage, event: { mouseover: function(){ CallRefreshImageBackRefreshFront(1) }, mouseout: function(){ CallRefreshImageBackRefreshFront(2) } }, attr: refleshimagefrontAttr" border="0"></td>
+</tr>
+</tbody></table>
+</div>
+</div>
+
+<div id="contain" data-bind="attr: containAttr, style: containStyle">
+
+<div id="rightcolmn">
+<div id="docustom" data-bind="visible: docustomVisible" style="display: none;">
+<br>
+<div id="hometitle" data-bind="css: hometitleStyle2">
+<table cellpadding="0" cellspacing="0" height="100%" border="0">
+<tbody><tr height="38px" align="center" valign="middle">
+<td width="1%">&nbsp;</td>
+<td align="left" width="3%" valign="middle"><div data-bind="visible: imgBackVisible"><img id="backimage" width="32px" height="32px" src="../images/back.png" title="mes()[242]" style="cursor: hand;cursor:pointer;" data-bind="click: function(){ documentBack(1) }, event: { mouseover: function(){ CallImageBack(1,1) }, mouseout: function(){ CallImageBack(2,1) } }, attr: backimageAttributes"></div></td>
+<td width="1%">&nbsp;</td>
+<td valign="middle" width="4%" align="left"><div data-bind="visible: imgBackVisible"><img width="1px" height="38px" src="../images/verticallineBlack.png" alt=""></div></td>
+<!-- ko if: hometitleNbsp2.first -->
+<td width="1%">&nbsp;</td>
+<!-- /ko -->
+<td align="left" valign="middle" data-bind="attr: { width: hometitleWidth2.lblTitleidTd }" width="50%"><div id="lblTitleid" data-bind="html: lblTitleidText"></div></td>
+<td align="center" valign="middle" data-bind="attr: { width: hometitleWidth2.verticallineBlackTd }" width="9%"><img height="38px" src="../images/verticallineBlack.png" alt="" data-bind="attr: { width: hometitleWidth2.verticallineBlackImg }" width="3%"></td>
+<td width="30%" align="left" valign="middle"><!-- ko text: mes()[4] + ':' -->Последнее обновление:<!-- /ko --><br><div id="lastupdateTitle" data-bind="text: lastUpdate">2026/06/25 16:34:24</div></td>
+<td align="right" width="1%" valign="middle"></td>
+<td width="4%" align="left" valign="middle"><img id="refleshimage" width="32px" height="32px" src="../images/refresh.png" title="Обновить" style="cursor: hand;cursor:pointer;" data-bind="click: function(){ NavigationIframe(1) }, event: { mouseover: function(){ CallRefreshImageBackRefresh(1) }, mouseout: function(){ CallRefreshImageBackRefresh(2) } }, attr: refleshimageAttr" border="0"></td>
+</tr>
+</tbody></table>
+</div>
+
+<table width="585px">
+<tbody><tr height="17px">
+<td></td>
+</tr>
+</tbody></table>
+
+<table>
+<tbody><tr height="1px">
+<td><div id="line1"></div></td>
+</tr>
+</tbody></table>
+
+<div id="lnkdocustom">
+<div id="customlink" style="margin-top:15px;margin-left:5px;">
+
+<input type="hidden" id="hiddRefreshDevice" name="hiddRefreshDevice" data-bind="value: hiddRefreshDeviceValue" value="../startwlm/Hme_DvcSts.htm">
+<input type="hidden" id="hiddRefreshPanelUsed" name="hiddRefreshPanelUsed" data-bind="value: hiddRefreshPanelUsedValue" value="../startwlm/Hme_PnlUsg.htm">
+<input type="hidden" id="hiddRefreshPaperid" name="hiddRefreshPaperid" data-bind="value: hiddRefreshPaperidValue" value="../startwlm/Hme_Paper.htm">
+<input type="hidden" id="hiddRefreshTonerid" name="hiddRefreshTonerid" data-bind="value: hiddRefreshToneridValue" value="../startwlm/Hme_StplPnch.htm">
+<input type="hidden" id="hiddRefreshStapleid" name="hiddRefreshStapleid" data-bind="value: hiddRefreshStapleidValue" value="../startwlm/Hme_Toner.htm">
+<input type="hidden" id="hiddnBackNavIndx" name="hiddnBackNavIndx" data-bind="value: hiddnBackNavIndxValue" value="1">
+<input type="hidden" id="hiddRefreshDeviceBack" name="hiddRefreshDeviceBack" data-bind="value: hiddRefreshDeviceBackValue">
+<input type="hidden" id="hiddRefreshPanelUsedBack" name="hiddRefreshPanelUsedBack" data-bind="value: hiddRefreshPanelUsedBackValue">
+<input type="hidden" id="hiddRefreshPaperidBack" name="hiddRefreshPaperidBack" data-bind="value: hiddRefreshPaperidBackValue">
+<input type="hidden" id="hiddRefreshToneridBack" name="hiddRefreshToneridBack" data-bind="value: hiddRefreshToneridBackValue">
+<input type="hidden" id="hiddRefreshStapleidBack" name="hiddRefreshStapleidBack" data-bind="value: hiddRefreshStapleidBackValue">
+<input type="hidden" id="hiddCompatibility" name="hiddCompatibility" data-bind="value: hiddCompatibilityValue">
+<input type="hidden" id="hiddPasswordToOpenChk" name="hiddPasswordToOpenChk" data-bind="value: hiddPasswordToOpenChkValue">
+<input type="hidden" id="hiddPasswordToOpen" name="hiddPasswordToOpen" data-bind="value: hiddPasswordToOpenValue">
+<input type="hidden" id="hiddRePasswordToOpen" name="hiddRePasswordToOpen" data-bind="value: hiddRePasswordToOpenValue">
+<input type="hidden" id="hiddPasswordToEditChk" name="hiddPasswordToEditChk" data-bind="value: hiddPasswordToEditChkValue">
+<input type="hidden" id="hiddPasswordToEdit" name="hiddPasswordToEdit" data-bind="value: hiddPasswordToEditValue">
+<input type="hidden" id="hiddRePasswordToEdit" name="hiddRePasswordToEdit" data-bind="value: hiddRePasswordToEditValue">
+<input type="hidden" id="hiddPrinting" name="hiddPrinting" data-bind="value: hiddPrintingValue">
+<input type="hidden" id="hiddChanges" name="hiddChanges" data-bind="value: hiddChangesValue">
+<input type="hidden" id="hiddCopyingOfText" name="hiddCopyingOfText" data-bind="value: hiddCopyingOfTextValue">
+<input type="hidden" id="hiddEmaiSID" name="hiddEmaiSID" data-bind="value: hiddEmaiSIDValue">
+<input type="hidden" id="hiddEmaiName" name="hiddEmaiName" data-bind="value: hiddEmaiNameValue">
+<input type="hidden" id="hiddECM" name="hiddECM" data-bind="value: hiddECMValue">
+<input type="hidden" id="hiddDocID" name="hiddDocID" data-bind="value: hiddDocIDValue">
+<input type="hidden" id="privid" name="privid" data-bind="value: prividValue">
+<input type="hidden" id="publicid" name="publicid" data-bind="value: publicidValue">
+<input type="hidden" id="attrtype" name="attrtype" data-bind="value: attrtypeValue">
+<input type="hidden" id="attrname" name="attrname" data-bind="value: attrnameValue">
+<input type="hidden" id="hiddFolderType" name="hiddFolderType" data-bind="value: hiddFolderTypeValue">
+<input type="hidden" id="hiddFolderSMBType" name="hiddFolderSMBType" data-bind="value: hiddFolderSMBTypeValue">
+<input type="hidden" id="hiddFolderFTPType" name="hiddFolderFTPType" data-bind="value: hiddFolderFTPTypeValue">
+<input type="hidden" id="hiddSMBNumber1" name="hiddSMBNumber1" data-bind="value: hiddSMBNumber1Value">
+<input type="hidden" id="hiddSMBNumber2" name="hiddSMBNumber2" data-bind="value: hiddSMBNumber2Value">
+<input type="hidden" id="hiddSMBNumber3" name="hiddSMBNumber3" data-bind="value: hiddSMBNumber3Value">
+<input type="hidden" id="hiddSMBNumber4" name="hiddSMBNumber4" data-bind="value: hiddSMBNumber4Value">
+<input type="hidden" id="hiddSMBNumber5" name="hiddSMBNumber5" data-bind="value: hiddSMBNumber5Value">
+<input type="hidden" id="hiddSMBNumber6" name="hiddSMBNumber6" data-bind="value: hiddSMBNumber6Value">
+<input type="hidden" id="hiddSMBNumber7" name="hiddSMBNumber7" data-bind="value: hiddSMBNumber7Value">
+<input type="hidden" id="hiddFTPNumber1" name="hiddFTPNumber1" data-bind="value: hiddFTPNumber1Value">
+<input type="hidden" id="hiddFTPNumber2" name="hiddFTPNumber2" data-bind="value: hiddFTPNumber2Value">
+<input type="hidden" id="hiddFTPNumber3" name="hiddFTPNumber3" data-bind="value: hiddFTPNumber3Value">
+<input type="hidden" id="hiddFTPNumber4" name="hiddFTPNumber4" data-bind="value: hiddFTPNumber4Value">
+<input type="hidden" id="hiddFTPNumber5" name="hiddFTPNumber5" data-bind="value: hiddFTPNumber5Value">
+<input type="hidden" id="hiddFTPNumber6" name="hiddFTPNumber6" data-bind="value: hiddFTPNumber6Value">
+<input type="hidden" id="hiddFTPNumber7" name="hiddFTPNumber7" data-bind="value: hiddFTPNumber7Value">
+<input type="hidden" id="hiddFAXAddress1" name="hiddFAXAddress1" data-bind="value: hiddFAXAddress1Value">
+<input type="hidden" id="hiddFAXAddress2" name="hiddFAXAddress2" data-bind="value: hiddFAXAddress2Value">
+<input type="hidden" id="hiddFAXAddress3" name="hiddFAXAddress3" data-bind="value: hiddFAXAddress3Value">
+<input type="hidden" id="hiddFAXAddress4" name="hiddFAXAddress4" data-bind="value: hiddFAXAddress4Value">
+<input type="hidden" id="hiddFAXAddress5" name="hiddFAXAddress5" data-bind="value: hiddFAXAddress5Value">
+<input type="hidden" id="hiddFAXAddress6" name="hiddFAXAddress6" data-bind="value: hiddFAXAddress6Value">
+<input type="hidden" id="hiddFAXAddress7" name="hiddFAXAddress7" data-bind="value: hiddFAXAddress7Value">
+<input type="hidden" id="hiddFAXAddress8" name="hiddFAXAddress8" data-bind="value: hiddFAXAddress8Value">
+<input type="hidden" id="hiddFAXAddress9" name="hiddFAXAddress9" data-bind="value: hiddFAXAddress9Value">
+<input type="hidden" id="hiddFAXAddress10" name="hiddFAXAddress10" data-bind="value: hiddFAXAddress10Value">
+<input type="hidden" id="hiddIFaxAdd" name="hiddIFaxAdd" data-bind="value: hiddIFaxAddValue">
+<input type="hidden" id="hiddIFaxViaServer" name="hiddIFaxViaServer" data-bind="value: hiddIFaxViaServerValue">
+<input type="hidden" id="hiddIFaxConnMode" name="hiddIFaxConnMode" data-bind="value: hiddIFaxConnModeValue">
+<input type="hidden" id="hiddIFaxResolution" name="hiddIFaxResolution" data-bind="value: hiddIFaxResolutionValue">
+<input type="hidden" id="hiddIFaxResolution1" name="hiddIFaxResolution1" data-bind="value: hiddIFaxResolution1Value">
+<input type="hidden" id="hiddIFaxResolution2" name="hiddIFaxResolution2" data-bind="value: hiddIFaxResolution2Value">
+<input type="hidden" id="hiddIFaxResolution3" name="hiddIFaxResolution3" data-bind="value: hiddIFaxResolution3Value">
+<input type="hidden" id="hiddIFaxResolution4" name="hiddIFaxResolution4" data-bind="value: hiddIFaxResolution4Value">
+<input type="hidden" id="hiddIFaxResolution5" name="hiddIFaxResolution5" data-bind="value: hiddIFaxResolution5Value">
+<input type="hidden" id="hiddIFaxComplession" name="hiddIFaxComplession" data-bind="value: hiddIFaxComplessionValue">
+<input type="hidden" id="hiddIFaxPaperSize" name="hiddIFaxPaperSize" data-bind="value: hiddIFaxPaperSizeValue">
+<input type="hidden" id="hiddIFaxPaperSize1" name="hiddIFaxPaperSize1" data-bind="value: hiddIFaxPaperSize1Value">
+<input type="hidden" id="hiddIFaxPaperSize2" name="hiddIFaxPaperSize2" data-bind="value: hiddIFaxPaperSize2Value">
+<input type="hidden" id="hiddIFaxPaperSize3" name="hiddIFaxPaperSize3" data-bind="value: hiddIFaxPaperSize3Value">
+<input type="hidden" id="hiddImage" name="hiddImage" data-bind="value: hiddImageValue">
+<input type="hidden" id="hiddTest" name="hiddTest" data-bind="value: hiddTestValue">
+<input type="hidden" id="hiddDoc_Num" name="hiddDoc_Num" data-bind="value: hiddDoc_NumValue">
+<input type="hidden" id="hiddCopy" name="hiddCopy" data-bind="value: hiddCopyValue">
+<input type="hidden" id="hiddDocument" name="hiddDocument" data-bind="value: hiddDocumentValue">
+<input type="hidden" id="hiddDocRec" name="hiddDocRec" data-bind="value: hiddDocRecValue">
+<input type="hidden" id="AddressNumberPersonal" name="AddressNumberPersonal" data-bind="value: AddressNumberPersonalValue">
+<input type="hidden" id="AddressNumberGroup" name="AddressNumberGroup" data-bind="value: AddressNumberGroupValue">
+<input type="hidden" id="hiddPersonAddressID" name="hiddPersonAddressID" data-bind="value: hiddPersonAddressIDValue">
+<input type="hidden" id="hiddGroupAddressID" name="hiddGroupAddressID" data-bind="value: hiddGroupAddressIDValue">
+<input type="hidden" id="hiddPrnBasic" name="hiddPrnBasic" data-bind="value: hiddPrnBasicValue">
+<input type="hidden" id="hiddPageName" name="hiddPageName" data-bind="value: hiddPageNameValue">
+<input type="hidden" id="hiddDwnLoadType" name="hiddDwnLoadType" data-bind="value: hiddDwnLoadTypeValue">
+<input type="hidden" id="hiddPrintType" name="hiddPrintType" data-bind="value: hiddPrintTypeValue">
+<input type="hidden" id="hiddSend1" name="hiddSend1" data-bind="value: hiddSend1Value">
+<input type="hidden" id="hiddSend2" name="hiddSend2" data-bind="value: hiddSend2Value">
+<input type="hidden" id="hiddSend3" name="hiddSend3" data-bind="value: hiddSend3Value">
+<input type="hidden" id="hiddSend4" name="hiddSend4" data-bind="value: hiddSend4Value">
+<input type="hidden" id="hiddSend5" name="hiddSend5" data-bind="value: hiddSend5Value">
+<input type="hidden" id="hiddAddrBokBackUrl" name="hiddAddrBokBackUrl" data-bind="value: hiddAddrBokBackUrlValue">
+<input type="hidden" id="hiddAddrBokNumber" name="hiddAddrBokNumber" data-bind="value: hiddAddrBokNumberValue">
+<input type="hidden" id="hiddAddrBokName" name="hiddAddrBokName" data-bind="value: hiddAddrBokNameValue">
+<input type="hidden" id="hiddAddrBokFname" name="hiddAddrBokFname" data-bind="value: hiddAddrBokFnameValue">
+<input type="hidden" id="hiddSendFileName" name="hiddSendFileName" data-bind="value: hiddSendFileNameValue">
+<input type="hidden" id="hiddenAddressbook" name="hiddenAddressbook" data-bind="value: hiddenAddressbookValue">
+<input type="hidden" id="hiddenAddressbook1" name="hiddenAddressbook1" data-bind="value: hiddenAddressbook1Value">
+<input type="hidden" id="hiddSendDoc_Num" name="hiddSendDoc_Num" data-bind="value: hiddSendDoc_NumValue">
+<input type="hidden" id="hiddSendColor" name="hiddSendColor" data-bind="value: hiddSendColorValue">
+<input type="hidden" id="hiddSendAddInfo" name="hiddSendAddInfo" data-bind="value: hiddSendAddInfoValue">
+<input type="hidden" id="hiddSendFileFormat" name="hiddSendFileFormat" data-bind="value: hiddSendFileFormatValue">
+<input type="hidden" id="hiddMoveConfScn" name="hiddMoveConfScn" data-bind="value: hiddMoveConfScnValue">
+
+<div id="imagesym" data-bind="html: imagesymText" style="display:inline;"></div>
+<div id="lbldivid" data-bind="click: function(){ MovetoHomePage(1) }, html: lbldividText, style: lbldividStyle" style="display: inline; width: auto; font-family: Arial; font-size: 13px; text-decoration: underline; cursor: pointer;"></div>
+<div id="leftsec" data-bind="html: leftsecText" style="display:inline;"></div>
+<div id="leftthird" data-bind="click: function(){ MovetoHomePage(2) }, html: leftthirdText" style=" display:inline;font-family:Arial;font-size:13px;text-decoration:underline; cursor:pointer; cursor:hand;"></div>
+<div id="leftthree" data-bind="html: leftthreeText" style="display:inline;"></div>
+<div id="leftfourth" data-bind="click: documentBack, html: leftfourthText" style=" display:inline;font-family:Arial;font-size:13px;text-decoration:underline; cursor:pointer; cursor:hand;"></div>
+
+<div id="breadcrmb1" data-bind="click: breadcrmb1, text: breadcrmb1Text" style=" display:inline;font-family:Arial;font-size:13px;text-decoration:underline; cursor:pointer; cursor:hand;"></div>
+<div id="breadcrmb1grt" data-bind="html: breadcrmb1grtText" style="display:inline;"></div>
+<div id="breadcrmb2" data-bind="click: breadcrmb2, text: breadcrmb2Text" style=" display:inline;font-family:Arial;font-size:13px;text-decoration:underline; cursor:pointer; cursor:hand;"></div>
+<div id="breadcrmb2grt" data-bind="html: breadcrmb2grtText" style="display:inline;"></div>
+<div id="breadcrmb3" data-bind="click: breadcrmb3, text: breadcrmb3Text" style=" display:inline;font-family:Arial;font-size:13px;text-decoration:underline; cursor:pointer; cursor:hand;"></div>
+<div id="breadcrmb3grt" data-bind="html: breadcrmb3grtText" style="display:inline;"></div>
+<div id="breadcrmb4" data-bind="click: breadcrmb4, text: breadcrmb4Text" style=" display:inline;font-family:Arial;font-size:13px;text-decoration:underline; cursor:pointer; cursor:hand;"></div>
+<div id="breadcrmb4grt" data-bind="html: breadcrmb4grtText" style="display:inline;"></div>
+<div id="breadcrmb5" data-bind="click: breadcrmb5, text: breadcrmb5Text" style=" display:inline;font-family:Arial;font-size:13px;text-decoration:underline; cursor:pointer; cursor:hand;"></div>
+</div>
+</div>
+</div>
+
+<div id="docustom1" data-bind="visible: docustom1Visible" style="display: none;">
+<br>
+<div id="hometitle" data-bind="css: hometitleStyle" class="left">
+<table cellpadding="0" cellspacing="0" height="100%" border="0">
+<tbody><tr height="38px" align="center" valign="middle">
+<td width="1%" data-bind="if: isFirefox"></td>
+<td align="left" width="3%"><img id="backimages" width="32px" height="32px" src="../images/back.png" title="Далее" style="cursor: hand;cursor:pointer;" data-bind="click: function(){ documentBack(1) }, event: { mouseover: function(){ CallImageBackJob(1, 1) }, mouseout: function(){ CallImageBackJob(2, 1) } }, attr: { title: mes()[242] }"></td>
+<td width="1%">&nbsp;</td>
+<td align="left" valign="middle" data-bind="attr: { width: hometitleWidth.verticallineBlackTd1 }" width="3%"><img width="1px" height="38px" src="../images/verticallineBlack.png" alt=""></td>
+<!-- ko if: hometitleNbsp.first -->
+<td width="1%">&nbsp;</td>
+<!-- /ko -->
+<td align="left" valign="middle" data-bind="attr: { width: hometitleWidth.lblTitleid1Td }" width="40%"><div id="lblTitleid1" data-bind="html: lblTitleid1Text">Состояние задания : Cостояние заданий печати </div></td>
+<td align="center" valign="middle" data-bind="attr: { width: hometitleWidth.verticallineBlackTd2 }" width="7%"><img height="38px" src="../images/verticallineBlack.png" alt="" data-bind="attr: { width: hometitleWidth.verticallineBlackImg2 }" width="3%"></td>
+<td align="left" width="1%"><input type="checkbox" class="medium" value="" id="jobAuto" name="jobAuto" data-bind="checked: jobAutoIsChecked, click: RefreshTitle"></td>
+<td align="left" data-bind="attr: { width: hometitleWidth.mes3Td }, text: mes()[3]" width="10%">Автообновление</td>
+<td align="center" valign="middle" data-bind="attr: { width: hometitleWidth.verticallineBlackTd3 }" width="4%"><img height="38px" src="../images/verticallineBlack.png" alt="" data-bind="attr: { width: hometitleWidth.verticallineBlackImg3 }" width="8%"></td>
+<td align="left" data-bind="attr: { width: hometitleWidth.lastUpdateTd }" width="30%"><!-- ko text: mes()[4] + ':' -->Последнее обновление:<!-- /ko --><br><div id="lastupdate1" data-bind="text: lastUpdate">2026/06/25 16:34:24</div></td>
+<td align="right" width="1%"></td>
+<td width="4%" align="left" valign="middle"><img id="refleshimages" width="32px" height="32px" src="../images/refresh.png" title="Обновить" style="cursor: hand;cursor:pointer;" data-bind="click: function(){ NavigationIframe(1) }, event: { mouseover: function(){ CallRefreshImageBackRefreshJob(1) }, mouseout: function(){ CallRefreshImageBackRefreshJob(2) } }, attr: refleshimagesAttr" border="0"></td>
+</tr>
+</tbody></table>
+</div>
+
+<table width="585px">
+<tbody><tr height="17px">
+<td></td>
+</tr>
+</tbody></table>
+
+<table>
+<tbody><tr height="1px">
+<td><div id="line1"></div></td>
+</tr>
+</tbody></table>
+
+<div id="lnkdocustom">
+<div id="customlink">
+<input type="hidden" id="hiddRefreshDevice" name="hiddRefreshDevice" data-bind="value: hiddRefreshDeviceValue" value="../startwlm/Hme_DvcSts.htm">
+<input type="hidden" id="hiddRefreshPanelUsed" name="hiddRefreshPanelUsed" data-bind="value: hiddRefreshPanelUsedValue" value="../startwlm/Hme_PnlUsg.htm">
+<input type="hidden" id="hiddRefreshPaperid" name="hiddRefreshPaperid" data-bind="value: hiddRefreshPaperidValue" value="../startwlm/Hme_Paper.htm">
+<input type="hidden" id="hiddRefreshTonerid" name="hiddRefreshTonerid" data-bind="value: hiddRefreshToneridValue" value="../startwlm/Hme_StplPnch.htm">
+<input type="hidden" id="hiddRefreshStapleid" name="hiddRefreshStapleid" data-bind="value: hiddRefreshStapleidValue" value="../startwlm/Hme_Toner.htm">
+<input type="hidden" id="hiddnBackNavIndx" name="hiddnBackNavIndx" data-bind="value: hiddnBackNavIndxValue" value="1">
+<input type="hidden" id="hiddRefreshDeviceBack" name="hiddRefreshDeviceBack" data-bind="value: hiddRefreshDeviceBackValue">
+<input type="hidden" id="hiddRefreshPanelUsedBack" name="hiddRefreshPanelUsedBack" data-bind="value: hiddRefreshPanelUsedBackValue">
+<input type="hidden" id="hiddRefreshPaperidBack" name="hiddRefreshPaperidBack" data-bind="value: hiddRefreshPaperidBackValue">
+<input type="hidden" id="hiddRefreshToneridBack" name="hiddRefreshToneridBack" data-bind="value: hiddRefreshToneridBackValue">
+<input type="hidden" id="hiddRefreshStapleidBack" name="hiddRefreshStapleidBack" data-bind="value: hiddRefreshStapleidBackValue">
+<table width="100%">
+<tbody><tr height="32px" align="left" valign="middle">
+<td width="1%"></td>
+<td align="left" width="1%"><div id="imagesym1" data-bind="text: imagesym1Text"></div></td>
+<td align="left" width="25%"><u><div id="lbldivid1" data-bind="click: function(){ documentBack(0) }, text: lbldivid1Text" style=" font-family:Arial;font-size:13px; cursor:pointer; cursor:hand; width:100%;"></div></u></td>
+<td width="1%"><div id="leftsec1" data-bind="text: leftsec1Text"></div></td>
+<td width="15%"><u><div id="leftthird1" data-bind="click: function(){ documentBack(0) }, text: leftthird1Text" style=" font-family:Arial;font-size:13px; cursor:pointer; cursor:hand;"></div></u></td>
+<td width="1%"><div id="leftthree1" data-bind="text: leftthree1Text"></div></td>
+<td><u><div id="leftfourth1" data-bind="click: function(){ documentBack(0) }, text: leftfourth1Text" style=" font-family:Arial;font-size:13px;cursor:pointer; cursor:hand;"></div></u></td>
+</tr>
+</tbody></table>
+</div>
+</div>
+
+</div>
+
+<div id="deviceid" data-bind="visible: deviceidVisible">
+<iframe id="device" name="device" style="background: transparent; height: 269px; width: 585px;" allowtransparency="true" scrolling="no" frameborder="0" data-bind="attr: deviceidIframeAttributes, event: { load: resizeFrame }" class="style13" src="../startwlm/Hme_DvcSts.htm">You need an iframes capable browser to view this content.</iframe>
+</div>
+
+<table>
+<tbody><tr height="1px">
+<td><div id="line1"></div></td>
+</tr>
+</tbody></table>
+
+<div id="panelusaged" data-bind="visible: panelusagedVisible" style="display: none;">
+<!-- ko if: !isErrorOnLoginStatus() -->
+<iframe id="panelusage" name="panelusage" style="background: transparent; height: 0px; width: 585px;" allowtransparency="true" scrolling="no" frameborder="0" data-bind="attr: panelusagedIframeAttributes, event: { load: resizeFrame }" src="../startwlm/Hme_PnlUsg.htm">You need an iframes capable browser to view this content.</iframe>
+<!-- /ko -->
+</div>
+
+<table>
+<tbody><tr height="1px">
+<td><div id="line1"></div></td>
+</tr>
+</tbody></table>
+
+<div id="paperid" data-bind="visible: paperidVisible">
+<!-- ko if: !isErrorOnLoginStatus() -->
+<iframe id="paper" name="paper" style="background: transparent; height: 150px; width: 585px;" allowtransparency="true" scrolling="no" frameborder="no" data-bind="attr: paperidIframeAttributes, event: { load: resizeFrame }" src="../startwlm/Hme_Paper.htm">You need an iframes capable browser to view this content.</iframe>
+<!-- /ko -->
+</div>
+
+<table>
+<tbody><tr height="1px">
+<td><div id="line1"></div></td>
+</tr>
+</tbody></table>
+
+<div id="tonerid" data-bind="visible: toneridVisible">
+<!-- ko if: !isErrorOnLoginStatus() -->
+<iframe id="toner" name="toner" style="background: transparent; height: 226px; width: 585px;" allowtransparency="true" scrolling="no" frameborder="no" data-bind="attr: toneridIframeAttributes, event: { load: resizeFrame }" src="../startwlm/Hme_Toner.htm">You need an iframes capable browser to view this content.</iframe>
+<!-- /ko -->
+</div>
+<table>
+<tbody><tr height="1px">
+<td><div id="line1"></div></td>
+</tr>
+</tbody></table>
+
+<div id="stapleid" data-bind="visible: stapleidVisible" style="display: none;">
+<!-- ko if: !isErrorOnLoginStatus() -->
+<iframe id="staple" name="staple" style="background: transparent; height: 0px; width: 585px;" allowtransparency="true" scrolling="no" frameborder="no" data-bind="attr: stapleidIframeAttributes, event: { load: resizeFrame }" src="../startwlm/Hme_StplPnch.htm">You need an iframes capable browser to view this content.</iframe>
+<!-- /ko -->
+</div>
+
+<table>
+<tbody><tr height="9px">
+<td><div id="line1"></div></td>
+</tr>
+</tbody></table>
+
+<div id="postlstinfoid" data-bind="visible: postlstinfoidVisible" style="display: none;">
+<!-- ko if: !isErrorOnLoginStatus() -->
+<iframe id="postlstinfo" name="postlstinfo" style="background: transparent; height: 0px; width: 585px;" allowtransparency="true" scrolling="no" frameborder="no" data-bind="attr: postlstinfoidIframeAttributes, event: { load: resizeFrame }" src="../startwlm/Hme_postlst_info.htm">You need an iframes capable browser to view this content.</iframe>
+<!-- /ko -->
+</div>
+
+<div id="docustomdown" data-bind="style: docustomdownStyle, visible: docustomdownVisible" style="display: none;">
+
+<div id="customlinkdown" class="style265" data-bind="style: getCustomlinkdownStyle()" style="text-align: left;">
+
+<input type="hidden" id="hiddValue" name="hiddValue" data-bind="value: hiddValueValue">
+
+<img width="32px" height="32px" data-bind="click: MovetoHome" src="../images/househome.png" alt="" class="style129">
+
+<div id="leftsecdown" class="style145" data-bind="html: leftsecdownText"></div>
+<div id="lbldividdown" data-bind="click: function(){ MovetoHomePage(1) }, html: lbldividdownText" class="style175"></div>
+<div id="leftsecdown" class="style145" data-bind="html: leftsecdownText"></div>
+<br><br>&nbsp;&nbsp;<!--
+--><div id="leftthirddown" data-bind="click: function(){ MovetoHomePage(2) }, html: leftthirddownText" class="style175"></div>
+<div id="leftthreedown" class="style145" data-bind="html: leftthreedownText"></div>
+<div id="leftfourthdown" data-bind="click: function(){ documentBack() }, html: leftfourthdownText" class="style175"></div>
+<div id="leftfifthdown" class="style145" data-bind="html: leftfifthdownText"></div>
+<div id="leftsixdown" data-bind="click: function(){ SendSettingLink() }, html: leftsixdownText" class="style175"></div>
+<input type="button" id="backcustom" name="backcustom" value="Далее" data-bind="click: function(){ documentBack(1) }, value: mes()[242]" class="style805">
+
+<div id="divbutsend" style="cursor:default;">
+<span align="center" data-bind="click: function(){ CallMove() }, attr: { 'class': divbutsendAttributes().classA, align: divbutsendAttributes().alignA }" class="style69">
+<div>
+<img src="../images/start.png" id="buttonimagecustom" data-bind="event: { mouseover: function(){ CallMouseInOutMove(1) }, mouseout: function(){ CallMouseInOutMove(2) } }, attr: { src: buttonimagecustomSrc, width: divbutsendAttributes().width }, enable: isButtonimagecustomEnable" height="50" class="style800" width="120">
+</div>
+<span id="spnimagebtn" name="spnimagebtn" data-bind="event: { mouseover: function(){ CallMouseInOutMove(1) }, mouseout: function(){ CallMouseInOutMove(2) } }, style: spnimagebtnStyle, html: spnimagebtnText, attr: { 'class': divbutsendAttributes().classB, align: divbutsendAttributes().alignB }" class="style61" align="center" style="display: block; left: 37px;"></span>
+</span>
+</div>
+</div>
+
+<br>
+<br>
+</div>
+
+<br>
+</div>
+
+<div dir="ltr">
+<div id="leftcolmnmain" data-bind="visible: leftcolmnmainVisible">
+
+<div id="leftcolmn">
+
+<div id="leftcoldiv" class="navilayer style608" data-bind="attr: leftcoldivAttributes, style: leftcoldivStyle">
+
+<div id="" class="mmenubottom">
+<table cellpadding="0" cellspacing="0" border="0" width="100%" bordercolor="Black">
+<tbody><tr height="5px">
+<td></td>
+</tr>
+</tbody></table>
+</div>
+
+<div id="s22" class="mmenubottom" data-bind="visible: s22Visible" style="display: none;">
+<div id="homehide">
+<table cellpadding="0" cellspacing="0" border="0" bordercolor="Black" width="175px">
+<tbody><tr height="38px" width="175px" id="HomeImg">
+<td width="5px">&nbsp;</td>
+<td width="20%"><img id="leftimg" align="right" src="../images/househome.png" border="0"></td>
+<td class="style409"><a class="style41" data-bind="attr: { href: homeHref }" target="_top" href="http://10.100.0.79/wlmpor/index.htm"><u><strong class="style858" data-bind="text: mes()[2634]">Главный экран</strong></u></a></td>
+</tr>
+</tbody></table>
+<table cellpadding="0" cellspacing="0" width="100%" border="0" bordercolor="Black">
+<tbody><tr height="5px">
+<td></td>
+</tr>
+<tr width="100%">
+<td colspan="5" class="border-wrapper"><img height="1px" width="100%" src="../images/9.bmp" border="0"></td>
+</tr>
+</tbody></table>
+</div>
+</div>
+
+<!-- ko if: isDisplayLoginForm -->
+<div id="s12" class="mmenubottom">
+<div id="s10">
+<table cellpadding="0" cellspacing="0" height="15%" width="100%" border="0" bordercolor="Black">
+<tbody>
+<!-- ko if: is_Local_Admin_login -->
+<tr>
+<td colspan="3" height="9px">
+<table align="left">
+<tbody><tr>
+<td width="50%" class="style233" data-bind="text: mes()[16]">Вход с правами администратора</td>
+</tr>
+</tbody></table>
+</td>
+</tr>
+<!-- /ko -->
+<!-- ko if: is_Dept_login --><!-- /ko -->
+<tr>
+<td height="10px">&nbsp;</td>
+<td width="22%" valign="top">
+<div id="imgChkDept">
+<img height="34px" width="80%" border="0" data-bind="attr: { src: imgChkDeptSrc }" src="../images/user_off.png">
+</div>
+</td>
+<td>
+<table cellpadding="0" cellspacing="0" height="15%" width="100%" border="0" bordercolor="Black">
+<tbody>
+<!-- ko if: is_Local_Admin_login -->
+<tr>
+<td width="100%" height="25px" valign="bottom"><font class="style205" data-bind="text: mes()[18]">Kullanıcı Adı</font></td>
+</tr>
+<tr>
+<td width="100%" class="style416"><input type="text" name="arg01_UserName" id="arg01_UserName" class="style639" maxlength="64" data-bind="visible: arg01_UserNameVisible, value: arg01_UserNameValue"></td>
+</tr>
+<tr>
+<td width="100%" height="15px" valign="bottom"><font class="style205" data-bind="text: mes()[19]">Паоль </font></td>
+</tr>
+<tr>
+<td width="100%" height="23px" class="style416">
+<div id="passwordbox">
+<input type="password" name="arg02_Password" id="arg02_Password" class="style639" maxlength="64" data-bind="visible: arg02_PasswordVisible, value: arg02_PasswordValue">
+</div>
+<input type="hidden" id="arg03_LoginType" name="arg03_LoginType" data-bind="value: arg03_LoginTypeValue" value="_mode_off">
+<input type="hidden" id="arg05_AccountId" name="arg05_AccountId" data-bind="value: arg05_AccountIdValue, visible: arg05_AccountIdVisible" style="display: none;">
+</td>
+</tr>
+<tr>
+<td width="100%" class="style416" height="36px" valign="bottom"><input type="submit" name="Login" value="Вход в систему" class="mauth style797" data-bind="value: mes()[20]"></td>
+</tr>
+<tr>
+<td width="100%"><input type="hidden" id="arg06_DomainName" name="arg06_DomainName" data-bind="value: arg06_DomainNameValue"></td>
+</tr>
+<tr>
+<td width="100%" height="20px"></td>
+</tr>
+<!-- /ko -->
+<!-- ko if: is_Local_login --><!-- /ko -->
+<!-- ko if: is_Network_login --><!-- /ko -->
+<!-- ko if: is_Domain_login --><!-- /ko -->
+<!-- ko if: is_Dept_login --><!-- /ko -->
+</tbody>
+</table>
+</td>
+</tr>
+<tr>
+<td colspan="3" class="border-wrapper"><img height="1px" width="97%" src="../images/9.bmp" border="0"></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+</div>
+<!-- /ko -->
+
+<!-- ko if: isDisplayLoginInformation --><!-- /ko -->
+<!-- ko if: displayDeviceInformation.all -->
+<div id="tm2" class="mmenumain P001_menu" data-bind="event: { mouseenter: function(){ toggleWithDelay('deviceConfig') }, mouseleave: function(){ toggleWithCancelingDelay('deviceConfig') } }">
+
+<div class="P001_menu_main P001_menu_main_closed" data-bind="click: function(){ toggleByMenuName('deviceConfig') }, attr: { 'class': deviceConfigSubMenuClass, 'style': remotePanelStyle('height') }" style="height: 36px;">
+<img class="P001_menu_main_icon" src="../images/deviceconfig.png"><!-- filler
+--><span class="P001_menu_main_caption">
+<span class="P001_menu_main_caption" data-bind="text: deviceinfoText, attr: { 'style': remotePanelStyle('width') }" style="width: 115px;">Информация об устройстве</span>
+<!-- ko if: displayRemotePanel() --><!-- /ko -->
+</span>
+</div>
+
+<div class="P001_menu_sub" data-bind="visible: deviceConfigSubMenuVisible" style="display: none;">
+<!-- ko if: displayDeviceInformation.displaySubMenu.configuration -->
+<!-- ko if: DBCLang === 'jpn' --><!-- /ko -->
+<!-- ko ifnot: DBCLang === 'jpn' -->
+<div id="s80" class="mmenu" data-bind="click: function(){ CheckId('../dvcinfo/dvcconfig/DvcConfig_Config.htm?arg1=0', mes()[172]) }, text: mes()[172]">Конфигурация</div>
+<!-- /ko -->
+<!-- /ko -->
+<!-- ko ifnot: is_login_rs_admin_on() -->
+<!-- ko if: displayDeviceInformation.displaySubMenu.counter -->
+<div id="s81" class="mmenu" data-bind="click: function(){ CheckId('Counternav',mes()[161]) }, text: mes()[161]">Счетчик</div>
+<!-- /ko -->
+<!-- ko if: displayDeviceInformation.displaySubMenu.aboutCCRX -->
+<div id="s82" class="mmenu" data-bind="click: function(){ CheckId('../dvcinfo/dvcabtcc/DvcConfig_AbtCC.htm', abouttitle) }, text: abouttitle">О продукте Command Center RX</div>
+<!-- /ko -->
+<!-- /ko -->
+
+<!-- ko if: displayRemotePanel() --><!-- /ko -->
+</div>
+
+</div>
+<!-- /ko -->
+<!-- ko if: isDisplayJobStatusMenu -->
+<!-- ko if: displayJobStatus.all -->
+<div id="tm10" class="mmenumain P001_menu" data-bind="event: { mouseenter: function(){ toggleWithDelay('jobStatus') }, mouseleave: function(){ toggleWithCancelingDelay('jobStatus') } }">
+
+<div class="P001_menu_main P001_menu_main_closed" data-bind="click: function(){ toggleByMenuName('jobStatus') }, attr: { 'class': jobStatusSubMenuClass }">
+<img class="P001_menu_main_icon" src="../images/jobstatus.png"><!-- filler
+--><span class="P001_menu_main_caption" data-bind="text: mes()[27]">Состояние задания</span>
+</div>
+
+<div class="P001_menu_sub" data-bind="visible: jobStatusSubMenuVisible" style="display: none;">
+<!-- ko if: displayJobStatus.displaySubMenu.printingJobStatus -->
+<div id="s7" class="mmenu" data-bind="click: function(){ CheckId('../job/JobSts_PrnJobSts_PrnJobs.htm?arg1=0&amp;arg2=0&amp;arg3=1&amp;arg7=1', mes()[32]) }, text: mes()[32]">Cостояние заданий печати </div>
+<!-- /ko -->
+
+<!-- ko if: displayJobStatus.displaySubMenu.printingJobLog -->
+<!-- ko if: isJobLogMenu() || isJobLogMenuOrAthOff() -->
+<div id="s14" class="mmenu" data-bind="click: function(){ CheckId('../job/JobSts_PrnJobLog_PrnJobs.htm?arg1=3&amp;arg2=3&amp;arg3=1&amp;arg7=1', mes()[36]) }, text: mes()[36]">Журнал заданий печати</div>
+<!-- /ko -->
+<!-- /ko -->
+
+<!-- ko if: displayJobStatus.displaySubMenu.sendingJobStatus -->
+<div id="s8" class="mmenu" data-bind="click: function(){ CheckId('../job/JobSts_SendJobSts_SendJobs.htm?arg1=1&amp;arg2=1&amp;arg3=1&amp;arg7=1', mes()[33]) }, text: mes()[33]">Cостояние заданий отправки</div>
+<!-- /ko -->
+
+<!-- ko if: DeviceConfig.mfp_type === '4in1' -->
+<!-- ko if: displayJobStatus.displaySubMenu.scheduledJobs -->
+<div id="s9" class="mmenu" data-bind="click: function(){ CheckId('../job/JobSts_SchdJob_SchdJobs.htm?arg1=6&amp;arg2=6&amp;arg3=1',mes()[34]) }, text: mes()[34]">Запланированные задания</div>
+<!-- /ko -->
+<!-- /ko -->
+
+<!-- ko if: displayJobStatus.displaySubMenu.sendingJobLog -->
+<!-- ko if: isJobLogMenu() || isJobLogMenuOrAthOff() -->
+<div id="s15" class="mmenu" data-bind="click: function(){ CheckId('../job/JobSts_SendJobLog_SendJobs.htm?arg1=4&amp;arg2=4&amp;arg3=1&amp;arg7=1',mes()[37]) }, text: mes()[37]">Журнал заданий отправки</div>
+<!-- /ko -->
+<!-- /ko -->
+
+<!-- ko if: displayJobStatus.displaySubMenu.storingJobStatus -->
+<div id="s13" class="mmenu" data-bind="click: function(){ CheckId('../job/JobSts_StrJobSts_StrJobs.htm?arg1=2&amp;arg2=2&amp;arg3=1&amp;arg7=1',mes()[35]) }, text: mes()[35]">Cостояние заданий сохранения</div>
+<!-- /ko -->
+
+<!-- ko if: displayJobStatus.displaySubMenu.storingJoblog -->
+<!-- ko if: isJobLogMenu() || isJobLogMenuOrAthOff() -->
+<div id="s16" class="mmenu" data-bind="click: function(){ CheckId('../job/JobSts_StrJobLog_StrJobs.htm?arg1=5&amp;arg2=5&amp;arg3=1&amp;arg7=1', mes()[38]) }, text: mes()[38]">Журнал заданий сохранения</div>
+<!-- /ko -->
+<!-- /ko -->
+
+</div>
+
+</div>
+<!-- /ko -->
+<!-- /ko -->
+<!-- ko if: isDisplayDocumentBoxMenu -->
+<!-- ko if: displayDocumentBox.all -->
+<div id="tm3" class="mmenumain P001_menu" data-bind="event: { mouseenter: function(){ toggleWithDelay('docBox') }, mouseleave: function(){ toggleWithCancelingDelay('docBox') } }">
+
+<div class="P001_menu_main P001_menu_main_closed" data-bind="click: function(){ toggleByMenuName('docBox') }, attr: { 'class': docBoxSubMenuClass }">
+<img class="P001_menu_main_icon" src="../images/docbox.png"><!-- filler
+--><span class="P001_menu_main_caption" data-bind="text: mes()[28]">Ящик для документов</span>
+</div>
+
+<div class="P001_menu_sub" data-bind="visible: docBoxSubMenuVisible" style="display: none;">
+<!-- ko if: displayDocumentBox.displaySubMenu.customBox --><!-- /ko -->
+
+<!-- ko if: isDisplayFaxSubMenu -->
+<!-- ko if: isFaxCardSupportInstalled -->
+<!-- ko if: displayDocumentBox.displaySubMenu.subAddressBox -->
+<div id="s1" class="mmenu" data-bind="click: function(){ CheckId('../box/DocBox_CstmBox_CstmBoxes.htm?arg1=1&amp;arg2=1&amp;arg3=0&amp;arg4=&amp;arg5=&amp;arg6=0',mes()[721]) }, text: mes()[721]">Ящик доп. адреса</div>
+<!-- /ko -->
+
+<!-- ko if: displayDocumentBox.displaySubMenu.pollingBox -->
+<div id="s2" class="mmenu" data-bind="click: function(){ CheckId('pollingscreen',mes()[41]) }, text: mes()[41]">Ящик для опроса</div>
+<!-- /ko -->
+<!-- /ko -->
+<!-- /ko -->
+
+
+<!-- ko if: isDisplayJobBoxSetting --><!-- /ko -->
+
+
+
+</div>
+
+</div>
+<!-- /ko -->
+<!-- /ko -->
+
+
+<!-- ko if: isDisplayAddressBookMenu -->
+<!-- ko if: displayAddressBook.all -->
+<div id="tm8" class="mmenumain P001_menu" data-bind="event: { mouseenter: function(){ toggleWithDelay('addressBook') }, mouseleave: function(){ toggleWithCancelingDelay('addressBook') } }">
+
+<div class="P001_menu_main P001_menu_main_closed" data-bind="click: function(){ toggleByMenuName('addressBook') }, attr: { 'class': addressBookSubMenuClass }">
+<img class="P001_menu_main_icon" src="../images/addressbook.png"><!-- filler
+--><span class="P001_menu_main_caption" data-bind="text: mes()[29]">Адрес. книга</span>
+</div>
+
+<div class="P001_menu_sub" data-bind="visible: addressBookSubMenuVisible" style="display: none;">
+<!-- ko if: displayAddressBook.displaySubMenu.machineAddressBook -->
+<div id="s17" class="mmenu" data-bind="click: function(){ CheckId('../basic/AddrBook_Addr.htm?arg1=1&amp;arg2=0&amp;arg3=&amp;arg4=1',mes()[805]) }, text: mes()[805]">Адресная книга аппарата</div>
+<!-- /ko -->
+
+<!-- ko if: displayAddressBook.displaySubMenu.externalAddressBookSettings -->
+<div id="s18" class="mmenu" data-bind="click: function(){ CheckId('../adbk/extabk/Adbk_ExtAbk_ExtAbkSet.htm',mes()[1531]) }, text: mes()[1531]">Настройки внешней адресной книги</div>
+<!-- /ko -->
+
+<!-- ko if: displayAddressBook.displaySubMenu.oneTochKey -->
+<div id="s19" class="mmenu" data-bind="click: function(){ CheckId('../adbk/otkset/Adbk_OtkSet_OtkSetLst.htm?arg1=1',mes()[807]) }, text: mes()[807]">Клав. набора одним наж.</div>
+<!-- /ko -->
+
+</div>
+
+</div>
+<!-- /ko -->
+<!-- /ko -->
+
+<!-- ko if: isDisplayDeviceSettingsMenu --><!-- /ko -->
+<!-- ko if: isDisplayManagementSettingsMenu --><!-- /ko -->
+<!-- ko if: isDisplayLinkMenu -->
+<!-- ko if: isOEMFlag || linkcheck() -->
+<!-- ko if: displayLinks.all -->
+<div id="tm6" class="mmenumain P001_menu">
+
+<div class="P001_menu_main P001_menu_main_closed P001_menu_main_link">
+<img class="P001_menu_main_icon" src="../images/linksglobe.png"><!-- filler
+--><span class="P001_menu_main_caption" data-bind="click: function(){ toggleByMenuName('links') }, text: mes()[31]">Ссылки</span>
+</div>
+
+</div>
+<!-- /ko -->
+<!-- /ko -->
+<!-- /ko -->
+<div id="s21" class="mmenubottom">
+<!--
+<table cellpadding="0" cellspacing="0" border="0" width="100%" bordercolor="Black">
+<tr height="135px">
+<td></td>
+</tr>
+</table>
+-->
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div dir="ltr">
+<div id="leftcolmnmain1">
+<table width="100%" height="100%">
+<tbody><tr>
+<td></td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</div>
+
+<br>
+<input type="hidden" name="hndHeight" id="hndHeight" value="0">
+
+</div>
+
+</div>
+
+</form>
+<script src="../js/jssrc/view_model/startwlm/Start_Wlm.viewmodel.js"></script><script type="text/javascript" src="../strings/rus/rus.js"></script>
+<script src="../js/jssrc/view_model/startwlm/Start_Wlm.migration.js"></script>
+
+
+</body></html>
+
+==================================================
+
+=== ВЛОЖЕННЫЙ ФРЕЙМ: wlmframe -> device ===
+<html id="ccrx-root" dir="ltr"><head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>P001_Hme_DvcSts</title>
+<link rel="stylesheet" href="../css/mainBase.css">
+<link rel="stylesheet" href="../css/common.css">
+<script src="../js/lib/knockout-2.3.0.js"></script>
+<script src="/strings/rus/rus.js" data-bind="attr: { src: languageStringsUrl }"></script>
+<script src="../js/jssrc/base.js"></script>
+<!--<script src="../js/jssrc/model/startwlm/Hme_DvcSts.model.htm"></script>-->
+<script src="../js/jssrc/model/startwlm/Hme_DvcSts.model.htm"></script>
+</head>
+<body id="devicepage" data-bind="visible: allVisible" style="">
+<form>
+<div id="outerdiv" data-bind="attr: { id: divId() }">
+<div data-bind="attr: { 'class': divClassName() }" class="style748">
+<table id="headerrad" width="100%" border="0" cellspacing="0">
+<tbody><tr valign="middle" height="33px">
+<td colspan="11" id="headerrad" data-bind="html: '&nbsp;' + '&nbsp;' + mes()[42] + '&nbsp;'">&nbsp;&nbsp;Состояние устройства&nbsp;</td>
+</tr>
+<tr height="5px">
+<td></td>
+</tr>
+</tbody></table>
+<table id="contentrow" width="100%" height="25%" border="0" cellspacing="0">
+<tbody><tr height="5px" valign="center">
+<td width="1%" rowspan="15"></td>
+<td id="fontset" colspan="2">
+&nbsp;&nbsp;<!--
+--><font class="style198" data-bind="text: mes()[43]">Устройство</font>
+</td>
+<td id="fontset" colspan="2">
+&nbsp;&nbsp;<!--
+--><font class="style198" data-bind="text: mes()[44]">Состояние</font>
+</td>
+<td></td>
+<td width="1%" rowspan="15" data-bind="attr: { width: tdWidth() }"></td>
+</tr>
+<tr width="100%" height="5px">
+<td colspan="4">
+<div id="line"></div>
+</td>
+</tr>
+<!-- ko foreach: dataRows -->
+<tr height="45px" valign="middle" data-bind="attr: { bgcolor: $data.trBgColor}" bgcolor="#d8d8d8">
+<!-- ko if: $data.dvColor != '&nbsp;' -->
+<td width="10%" valign="middle" id="imgcommon">
+&nbsp;&nbsp;<!--
+--><img align="center" border="0" data-bind="attr: { src: '../images/' + $data.dvColor }" src="../images/dev_printer.png"><!--
+--></td>
+<!-- /ko -->
+<!-- ko if: $data.dvColor == '&nbsp;' --><!-- /ko -->
+<td width="40%" valign="middle" data-bind="text: $data.sLabel">Принтер</td>
+<!-- ko if: $data.stColor != '&nbsp;' -->
+<td width="10%" valign="middle" id="imgcommon">
+&nbsp;&nbsp;<!--
+--><img align="center" border="0" data-bind="attr: { src: '../images/' + $data.stColor }" src="../images/statusgreen.png"><!--
+--></td>
+<!-- /ko -->
+<!-- ko if: $data.stColor == '&nbsp;' --><!-- /ko -->
+<td valign="middle" colspan="1" data-bind="attr: { width: $data.tdWidth }, text: $data.status" width="46%">Режим ожидания....</td>
+</tr>
+<tr height="1%">
+<td colspan="5"></td>
+</tr>
+<tr width="100%" height="5px">
+<td colspan="5" data-bind="attr: { 'class': $data.tdClassName }" class="style359">
+<div id="line"></div>
+</td>
+</tr>
+
+<tr height="45px" valign="middle" data-bind="attr: { bgcolor: $data.trBgColor}">
+<!-- ko if: $data.dvColor != '&nbsp;' -->
+<td width="10%" valign="middle" id="imgcommon">
+&nbsp;&nbsp;<!--
+--><img align="center" border="0" data-bind="attr: { src: '../images/' + $data.dvColor }" src="../images/dev_scanner.png"><!--
+--></td>
+<!-- /ko -->
+<!-- ko if: $data.dvColor == '&nbsp;' --><!-- /ko -->
+<td width="40%" valign="middle" data-bind="text: $data.sLabel">Сканер</td>
+<!-- ko if: $data.stColor != '&nbsp;' -->
+<td width="10%" valign="middle" id="imgcommon">
+&nbsp;&nbsp;<!--
+--><img align="center" border="0" data-bind="attr: { src: '../images/' + $data.stColor }" src="../images/statusgreen.png"><!--
+--></td>
+<!-- /ko -->
+<!-- ko if: $data.stColor == '&nbsp;' --><!-- /ko -->
+<td valign="middle" colspan="1" data-bind="attr: { width: $data.tdWidth }, text: $data.status" width="46%">Режим ожидания....</td>
+</tr>
+<tr height="1%">
+<td colspan="5"></td>
+</tr>
+<tr width="100%" height="5px">
+<td colspan="5" data-bind="attr: { 'class': $data.tdClassName }" class="style359">
+<div id="line"></div>
+</td>
+</tr>
+
+<tr height="45px" valign="middle" data-bind="attr: { bgcolor: $data.trBgColor}" bgcolor="#d8d8d8">
+<!-- ko if: $data.dvColor != '&nbsp;' -->
+<td width="10%" valign="middle" id="imgcommon">
+&nbsp;&nbsp;<!--
+--><img align="center" border="0" data-bind="attr: { src: '../images/' + $data.dvColor }" src="../images/dev_fax.png"><!--
+--></td>
+<!-- /ko -->
+<!-- ko if: $data.dvColor == '&nbsp;' --><!-- /ko -->
+<td width="40%" valign="middle" data-bind="text: $data.sLabel">ФАКС</td>
+<!-- ko if: $data.stColor != '&nbsp;' -->
+<td width="10%" valign="middle" id="imgcommon">
+&nbsp;&nbsp;<!--
+--><img align="center" border="0" data-bind="attr: { src: '../images/' + $data.stColor }" src="../images/statusgreen.png"><!--
+--></td>
+<!-- /ko -->
+<!-- ko if: $data.stColor == '&nbsp;' --><!-- /ko -->
+<td valign="middle" colspan="1" data-bind="attr: { width: $data.tdWidth }, text: $data.status" width="46%">Готово.</td>
+</tr>
+<tr height="1%">
+<td colspan="5"></td>
+</tr>
+<tr width="100%" height="5px">
+<td colspan="5" data-bind="attr: { 'class': $data.tdClassName }" class="style359">
+<div id="line"></div>
+</td>
+</tr>
+
+<tr height="45px" valign="middle" data-bind="attr: { bgcolor: $data.trBgColor}">
+<!-- ko if: $data.dvColor != '&nbsp;' -->
+<td width="10%" valign="middle" id="imgcommon">
+&nbsp;&nbsp;<!--
+--><img align="center" border="0" data-bind="attr: { src: '../images/' + $data.dvColor }" src="../images/StatusMess.png"><!--
+--></td>
+<!-- /ko -->
+<!-- ko if: $data.dvColor == '&nbsp;' --><!-- /ko -->
+<td width="40%" valign="middle" data-bind="text: $data.sLabel">Сообщение о состоянии</td>
+<!-- ko if: $data.stColor != '&nbsp;' -->
+<td width="10%" valign="middle" id="imgcommon">
+&nbsp;&nbsp;<!--
+--><img align="center" border="0" data-bind="attr: { src: '../images/' + $data.stColor }" src="../images/statusgreen.png"><!--
+--></td>
+<!-- /ko -->
+<!-- ko if: $data.stColor == '&nbsp;' --><!-- /ko -->
+<td valign="middle" colspan="1" data-bind="attr: { width: $data.tdWidth }, text: $data.status" width="46%">Режим ожидания....  </td>
+</tr>
+<tr height="1%">
+<td colspan="5"></td>
+</tr>
+<tr width="100%" height="5px">
+<td colspan="5" data-bind="attr: { 'class': $data.tdClassName }" class="style359">
+<div id="line"></div>
+</td>
+</tr>
+<!-- /ko -->
+</tbody></table>
+</div>
+</div>
+</form>
+<script src="../js/jssrc/view_model/startwlm/Hme_DvcSts.viewmodel.js"></script><script type="text/javascript" src="../strings/rus/rus.js"></script>
+
+
+</body></html>
+
+==================================================
+
+=== ВЛОЖЕННЫЙ ФРЕЙМ: wlmframe -> panelusage ===
+<html id="ccrx-root" dir="ltr"><head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>P001_Hme_PnlUsg</title>
+<link rel="stylesheet" href="../css/mainBase.css">
+<link rel="stylesheet" href="../css/common.css">
+<script src="../js/lib/knockout-2.3.0.js"></script>
+<script src="/strings/rus/rus.js" data-bind="attr: { src: languageStringsUrl }"></script>
+<script src="../js/jssrc/base.js"></script>
+<script src="../js/jssrc/model/startwlm/Hme_PnlUsg.model.htm"></script>
+</head>
+<body id="panelusagepage" data-bind="visible: allVisible" style="">
+<form>
+<div id="content" data-bind="attr: { 'class': divClassName() }" class="style748">
+<div data-bind="attr: { id: divId() }" id="outerdiv" class="style21">
+<table id="headerrad" width="100%" border="0" cellspacing="0">
+<tbody><tr valign="middle" height="33px">
+<td colspan="10" id="headerrad" data-bind="html: '&nbsp;' + '&nbsp;' + mes()[49] + '&nbsp;'">&nbsp;&nbsp;Использование панели управления&nbsp;</td>
+</tr>
+<tr height="5px">
+<td></td>
+</tr>
+</tbody></table>
+<table id="contentrow" width="100%" height="25%" border="0" cellspacing="0">
+<tbody><tr height="5px" valign="center">
+<td width="1%" rowspan="15"></td>
+<td id="fontset" colspan="2">&nbsp;&nbsp;<font class="style198" data-bind="text: mes()[50]">Пользователь</font></td>
+<td id="fontset" colspan="2">&nbsp;&nbsp;<font class="style198" data-bind="text: mes()[44]">Состояние</font></td>
+<td></td>
+<td width="1%" rowspan="15" data-bind="attr: {width: strTdWidth[1] }"></td>
+</tr>
+<tr width="100%" height="5px">
+<td colspan="4">
+<div id="line"></div>
+</td>
+</tr>
+<tr height="45px" valign="middle" bgcolor="#d8d8d8">
+<td width="10%" valign="middle" id="imgcommon">&nbsp;&nbsp;<img align="center" src="../images/User_sm.png" border="0"></td>
+<td width="40%" valign="middle" data-bind="text: Device()"></td>
+<td width="10%" valign="middle" id="imgcommon">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td width="46%" valign="middle" colspan="1" data-bind="attr: { width: strTdWidth[2] }, text: panelStatus">Используется функция копирования.</td>
+</tr>
+<tr height="1%">
+<td></td>
+</tr>
+<tr width="100%" height="5px">
+<td colspan="4">
+<div id="line"></div>
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</form>
+<script src="../js/jssrc/view_model/startwlm/Hme_PnlUsg.viewmodel.js"></script><script type="text/javascript" src="../strings/rus/rus.js"></script>
+
+
+</body></html>
+
+==================================================
+
+=== ВЛОЖЕННЫЙ ФРЕЙМ: wlmframe -> paper ===
+<html id="ccrx-root" dir="ltr"><head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>P001_Hme_Paper</title>
+<link rel="stylesheet" href="../css/mainBase.css">
+<link rel="stylesheet" href="../css/common.css">
+<script src="../js/lib/knockout-2.3.0.js"></script>
+<script src="/strings/rus/rus.js" data-bind="attr: { src: languageStringsUrl }"></script>
+<script src="../js/jssrc/base.js"></script>
+<script src="../js/jssrc/model/startwlm/Hme_Paper.model.htm"></script>
+</head>
+<body id="paperpage" data-bind="visible: allVisible" style="">
+<div id="content" data-bind="attr: { 'class': divClassName() }" class="style748">
+<div id="outerdivIE" class="style21">
+<table id="headerrad" width="100%" border="0" cellspacing="0">
+<tbody><tr valign="middle" height="33px">
+<td colspan="10" id="headerrad" data-bind="html: '&nbsp;' + '&nbsp;' + mes()[51] + '&nbsp;'">&nbsp;&nbsp;Бумага&nbsp;</td>
+</tr>
+<tr height="5px">
+<td></td>
+</tr>
+</tbody></table>
+<table id="contentrow" width="100%" border="0" cellspacing="0" cellpadding="2">
+<tbody><tr height="5px" valign="center">
+<td width="1px" rowspan="25"></td>
+<td width="100px" class="style353" data-bind="text: mes()[52]">Источник</td>
+<td width="100px" align="left" data-bind="text: mes()[61]">Размер</td>
+<td colspan="2" width="75px" align="center" data-bind="text: mes()[62]">Тип</td>
+<td width="100px" align="left" data-bind="text: mes()[63]">Емкость</td>
+<td width="50px" align="left" data-bind="text: mes()[44]">Состояние</td>
+<td width="150px" align="left">&nbsp;&nbsp;</td>
+<td rowspan="25" data-bind=" attr: { width: tdWidth() }" width="1px"></td>
+</tr>
+<tr width="95%" height="5px">
+<td colspan="7">
+<div id="line" align="center"></div>
+</td>
+</tr>
+<!-- ko foreach: dataRows -->
+<tr height="10px" valign="middle" data-bind="attr: { bgcolor: bgColor }" bgcolor="#d8d8d8">
+<td width="100px" class="style379" data-bind="html: $data.sLabel">Кассета 1</td>
+<td width="65px" class="style2" data-bind="html: $data.PaperSize">A4</td>
+<!-- ko if: $data.PaperLayout == "---" --><!-- /ko -->
+<!-- ko if: $data.PaperLayout != "---" -->
+<td valign="middle" align="center">
+<img height="32px" width="32px" align="center" border="0" data-bind="attr: { src:  '../images/' + $data.PaperLayout }" src="../images/paper_R.png">
+</td>
+<!-- /ko -->
+<td width="75px" class="style2" data-bind="html: $data.PaperType">Обычный</td>
+<td width="50px" class="style347" data-bind="html: $data.PaperCapacity ">250</td>
+<!-- ko if: $data.PaperStatus == "---" --><!-- /ko -->
+<!-- ko if: $data.PaperStatus != "---" -->
+<td valign="middle" width="25px" align="left" class="style2">
+<img height="32px" width="32px" align="center" border="0" data-bind="attr: { src: '../images/' + $data.PaperStatus }" src="../images/cassette_remaining_3.png">
+</td>
+<!-- /ko -->
+<td width="75px" data-bind="attr: { 'class': $data.className, align: $data.align }, html: $data.PaperLevel" align="left">Бумага загружена</td>
+</tr>
+<tr width="95%" height="5px">
+<td colspan="7">
+<div id="line" align="center"></div>
+</td>
+</tr>
+
+<tr height="10px" valign="middle" data-bind="attr: { bgcolor: bgColor }">
+<td width="100px" class="style379" data-bind="html: $data.sLabel">Многоцелевой лоток</td>
+<td width="65px" class="style2" data-bind="html: $data.PaperSize">A4</td>
+<!-- ko if: $data.PaperLayout == "---" --><!-- /ko -->
+<!-- ko if: $data.PaperLayout != "---" -->
+<td valign="middle" align="center">
+<img height="32px" width="32px" align="center" border="0" data-bind="attr: { src:  '../images/' + $data.PaperLayout }" src="../images/paper_R.png">
+</td>
+<!-- /ko -->
+<td width="75px" class="style2" data-bind="html: $data.PaperType">Обычный</td>
+<td width="50px" class="style347" data-bind="html: $data.PaperCapacity ">50</td>
+<!-- ko if: $data.PaperStatus == "---" --><!-- /ko -->
+<!-- ko if: $data.PaperStatus != "---" -->
+<td valign="middle" width="25px" align="left" class="style2">
+<img height="32px" width="32px" align="center" border="0" data-bind="attr: { src: '../images/' + $data.PaperStatus }" src="../images/mp_remaining_0.png">
+</td>
+<!-- /ko -->
+<td width="75px" data-bind="attr: { 'class': $data.className, align: $data.align }, html: $data.PaperLevel" align="left">НетБум</td>
+</tr>
+<tr width="95%" height="5px">
+<td colspan="7">
+<div id="line" align="center"></div>
+</td>
+</tr>
+<!-- /ko -->
+<tr height="5px">
+<td colspan="9"></td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<script src="../js/jssrc/view_model/startwlm/Hme_Paper.viewmodel.js"></script><script type="text/javascript" src="../strings/rus/rus.js"></script>
+
+
+</body></html>
+
+==================================================
+
+=== ВЛОЖЕННЫЙ ФРЕЙМ: wlmframe -> toner ===
+<html id="ccrx-root" dir="ltr"><head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>P001_Hme_Toner</title>
+<link rel="stylesheet" href="../css/mainBase.css">
+<link rel="stylesheet" href="../css/common.css">
+<script src="../js/lib/knockout-2.3.0.js"></script>
+<script src="/strings/rus/rus.js" data-bind="attr: { src: languageStringsUrl }"></script>
+<script src="../js/jssrc/base.js"></script>
+<script src="../js/jssrc/model/startwlm/Hme_Toner.model.htm"></script>
+</head>
+<body id="tonerpage" data-bind="visible: allVisible" style="">
+<form>
+<div id="content" class="style748" data-bind="attr: { 'class': divClassName() }">
+<div data-bind="attr: {id: divIdName() }" class="style21" id="outerdiv">
+<table id="headerrad" width="100%" border="0" cellspacing="0">
+<tbody><tr valign="middle" height="33px">
+<td colspan="10" id="headerrad" data-bind="html: '&nbsp;' + '&nbsp;' + mes()[64] + '&nbsp;'">&nbsp;&nbsp;Тонер&nbsp;</td>
+</tr>
+<tr height="5px">
+<td></td>
+</tr>
+</tbody></table>
+<table id="contentrow" width="100%" border="0" cellspacing="0">
+<tbody><tr height="5px" valign="center">
+<td width="1%" rowspan="15"></td>
+<td class="style2" data-bind="text: mes()[65]">Цветная</td>
+<td data-bind="text: mes()[263]">Состояние</td>
+<td>&nbsp;</td>
+<td rowspan="15" data-bind="attr: { width: tdWidth[1] }"></td>
+</tr>
+<tr width="100%" height="5px">
+<td colspan="3">
+<div id="line"></div>
+</td>
+</tr>
+<!-- ko foreach: dataRows -->
+<tr height="28px" valign="middle" data-bind="attr: { bgcolor: $data.trBgColor }" bgcolor="#d8d8d8">
+<td align="left" class="style363" width="20%" data-bind="html: $data.TonerColor">Черный</td>
+<!-- ko if: $data.Renaming !== -1 -->
+<!-- ko if: $data.tLevel === 100 --><!-- /ko -->
+<!-- ko if: $data.tLevel !== 100 -->
+<!-- ko if: $data.tLevel > 0 -->
+<td width="30%" valign="middle" class="style424" align="left" id="tonertab">
+<table cellspacing="0" height="2px" border="0" width="100%" bgcolor="#ffffff">
+<tbody><tr width="100%">
+<td data-bind="attr: { width: $data.tLevel + '%', bgcolor: $data.TbgColor }" width="65%" bgcolor="#000000"></td>
+<td>&nbsp;</td>
+</tr>
+</tbody></table>
+</td>
+<!-- /ko -->
+<!-- /ko -->
+<!-- ko if: $data.tLevel === 0 --><!-- /ko -->
+<!-- /ko -->
+<!-- ko if: $data.Renaming === -1 --><!-- /ko -->
+<!-- ko if: $data.Renaming !== -1 -->
+<td align="left" class="style363" data-bind="attr: { width: $data.widthValue }, html: $data.Renaming + '%'" width="50%">65%</td>
+<!-- /ko -->
+<!-- ko if: $data.Renaming === -1 --><!-- /ko -->
+</tr>
+<!-- ko if: $index()!== $data.tonerColorLength -->
+<tr width="100%" height="5px">
+<td colspan="3">
+<div id="line"></div>
+</td>
+</tr>
+<!-- /ko -->
+
+<tr height="28px" valign="middle" data-bind="attr: { bgcolor: $data.trBgColor }">
+<td align="left" class="style363" width="20%" data-bind="html: $data.TonerColor">Голубой</td>
+<!-- ko if: $data.Renaming !== -1 -->
+<!-- ko if: $data.tLevel === 100 --><!-- /ko -->
+<!-- ko if: $data.tLevel !== 100 -->
+<!-- ko if: $data.tLevel > 0 -->
+<td width="30%" valign="middle" class="style424" align="left" id="tonertab">
+<table cellspacing="0" height="2px" border="0" width="100%" bgcolor="#ffffff">
+<tbody><tr width="100%">
+<td data-bind="attr: { width: $data.tLevel + '%', bgcolor: $data.TbgColor }" width="73%" bgcolor="#0099FF"></td>
+<td>&nbsp;</td>
+</tr>
+</tbody></table>
+</td>
+<!-- /ko -->
+<!-- /ko -->
+<!-- ko if: $data.tLevel === 0 --><!-- /ko -->
+<!-- /ko -->
+<!-- ko if: $data.Renaming === -1 --><!-- /ko -->
+<!-- ko if: $data.Renaming !== -1 -->
+<td align="left" class="style363" data-bind="attr: { width: $data.widthValue }, html: $data.Renaming + '%'" width="50%">73%</td>
+<!-- /ko -->
+<!-- ko if: $data.Renaming === -1 --><!-- /ko -->
+</tr>
+<!-- ko if: $index()!== $data.tonerColorLength -->
+<tr width="100%" height="5px">
+<td colspan="3">
+<div id="line"></div>
+</td>
+</tr>
+<!-- /ko -->
+
+<tr height="28px" valign="middle" data-bind="attr: { bgcolor: $data.trBgColor }" bgcolor="#d8d8d8">
+<td align="left" class="style363" width="20%" data-bind="html: $data.TonerColor">Пурпурный</td>
+<!-- ko if: $data.Renaming !== -1 -->
+<!-- ko if: $data.tLevel === 100 --><!-- /ko -->
+<!-- ko if: $data.tLevel !== 100 -->
+<!-- ko if: $data.tLevel > 0 -->
+<td width="30%" valign="middle" class="style424" align="left" id="tonertab">
+<table cellspacing="0" height="2px" border="0" width="100%" bgcolor="#ffffff">
+<tbody><tr width="100%">
+<td data-bind="attr: { width: $data.tLevel + '%', bgcolor: $data.TbgColor }" width="60%" bgcolor="#FF0099"></td>
+<td>&nbsp;</td>
+</tr>
+</tbody></table>
+</td>
+<!-- /ko -->
+<!-- /ko -->
+<!-- ko if: $data.tLevel === 0 --><!-- /ko -->
+<!-- /ko -->
+<!-- ko if: $data.Renaming === -1 --><!-- /ko -->
+<!-- ko if: $data.Renaming !== -1 -->
+<td align="left" class="style363" data-bind="attr: { width: $data.widthValue }, html: $data.Renaming + '%'" width="50%">60%</td>
+<!-- /ko -->
+<!-- ko if: $data.Renaming === -1 --><!-- /ko -->
+</tr>
+<!-- ko if: $index()!== $data.tonerColorLength -->
+<tr width="100%" height="5px">
+<td colspan="3">
+<div id="line"></div>
+</td>
+</tr>
+<!-- /ko -->
+
+<tr height="28px" valign="middle" data-bind="attr: { bgcolor: $data.trBgColor }">
+<td align="left" class="style363" width="20%" data-bind="html: $data.TonerColor">Желтый</td>
+<!-- ko if: $data.Renaming !== -1 -->
+<!-- ko if: $data.tLevel === 100 --><!-- /ko -->
+<!-- ko if: $data.tLevel !== 100 -->
+<!-- ko if: $data.tLevel > 0 -->
+<td width="30%" valign="middle" class="style424" align="left" id="tonertab">
+<table cellspacing="0" height="2px" border="0" width="100%" bgcolor="#ffffff">
+<tbody><tr width="100%">
+<td data-bind="attr: { width: $data.tLevel + '%', bgcolor: $data.TbgColor }" width="52%" bgcolor="#FFFF00"></td>
+<td>&nbsp;</td>
+</tr>
+</tbody></table>
+</td>
+<!-- /ko -->
+<!-- /ko -->
+<!-- ko if: $data.tLevel === 0 --><!-- /ko -->
+<!-- /ko -->
+<!-- ko if: $data.Renaming === -1 --><!-- /ko -->
+<!-- ko if: $data.Renaming !== -1 -->
+<td align="left" class="style363" data-bind="attr: { width: $data.widthValue }, html: $data.Renaming + '%'" width="50%">52%</td>
+<!-- /ko -->
+<!-- ko if: $data.Renaming === -1 --><!-- /ko -->
+</tr>
+<!-- ko if: $index()!== $data.tonerColorLength -->
+<tr width="100%" height="5px">
+<td colspan="3">
+<div id="line"></div>
+</td>
+</tr>
+<!-- /ko -->
+<!-- /ko -->
+<!-- ko if: dataRowsLength > 0 -->
+<!-- ko if: dataRowsLength === 1 --><!-- /ko -->
+<!-- ko if: dataRowsLength !== 1 -->
+<tr height="28px" valign="middle" bgcolor="#d8d8d8">
+<td class="style363" data-bind="text: mes()[70]">Отраб. тонер</td>
+<td class="style2" data-bind="text: wasteToner">OK</td>
+<td></td>
+</tr>
+<!-- /ko -->
+<!-- /ko -->
+<tr width="100%" height="5px">
+<td colspan="3">
+<div id="line"></div>
+</td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</form>
+<script src="../js/jssrc/view_model/startwlm/Hme_Toner.viewmodel.js"></script><script type="text/javascript" src="../strings/rus/rus.js"></script>
+
+
+</body></html>
+
+==================================================
+
+=== ВЛОЖЕННЫЙ ФРЕЙМ: wlmframe -> staple ===
+<html id="ccrx-root" dir="ltr"><head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>P001_Hme_StplPnch</title>
+<link rel="stylesheet" href="../css/mainBase.css">
+<link rel="stylesheet" href="../css/common.css">
+<script src="../js/lib/knockout-2.3.0.js"></script>
+<script src="/strings/rus/rus.js" data-bind="attr: { src: languageStringsUrl }"></script>
+<script src="../js/jssrc/base.js"></script>
+<script src="../js/jssrc/model/startwlm/Hme_StplPnch.model.htm"></script>
+</head>
+<body id="staplepage" data-bind="visible: allVisible" style="">
+<form>
+<div id="content" data-bind="attr: { 'class': divClassName() }" class="style748">
+<div class="style21" data-bind="attr: {id: devId() }" id="outerdiv">
+<table id="headerrad" width="100%" border="0" cellspacing="0">
+<tbody><tr valign="middle" height="33px">
+<td colspan="10" id="headerrad" data-bind="html: getMessage"></td>
+</tr>
+<tr height="5p">
+<td></td>
+</tr>
+</tbody></table>
+<table id="contentrow" width="100%" height="50%" border="0" cellspacing="0">
+<tbody><tr height="15px" valign="center">
+<td width="1%" rowspan="15">&nbsp;</td>
+<td id="tdValue" data-bind="html: '&nbsp;&nbsp;' + mes()[72]">&nbsp;&nbsp;Опция </td>
+<td id="tdValue" data-bind="html: '&nbsp;&nbsp;&nbsp;' + mes()[319]">&nbsp;&nbsp;&nbsp;Состояние</td>
+<td width="60%"></td>
+<td width="1%" rowspan="15">&nbsp;</td>
+</tr>
+<tr width="100%" height="5px">
+<td colspan="3">
+<div id="line"></div>
+</td>
+</tr>
+<!-- ko foreach: dataRows --><!-- /ko -->
+</tbody></table>
+</div>
+</div>
+</form>
+<script src="../js/jssrc/view_model/startwlm/Hme_StplPnch.viewmodel.js"></script><script type="text/javascript" src="../strings/rus/rus.js"></script>
+
+
+</body></html>
+
+==================================================
+
+=== ВЛОЖЕННЫЙ ФРЕЙМ: wlmframe -> postlstinfo ===
+<html id="ccrx-root" dir="ltr"><head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>P001_Hme_postlst_info</title>
+<link rel="stylesheet" href="../css/mainBase.css">
+<link rel="stylesheet" href="../css/common.css">
+<script src="../js/lib/knockout-2.3.0.js"></script>
+<script src="/strings/rus/rus.js" data-bind="attr: { src: languageStringsUrl }"></script>
+<script src="../js/jssrc/base.js"></script>
+<script src="../js/jssrc/model/startwlm/Hme_postlst_info.model.htm"></script>
+
+</head>
+<body id="custom" data-bind="visible: allVisible" style="">
+<form>
+<div id="content">
+<div data-bind="attr: {id: divId() }" class="style21" id="outerdiv">
+<table id="headerrad" width="100%" border="0" cellspacing="0">
+<tbody><tr valign="middle" height="33px">
+<td colspan="10" id="headerrad" data-bind="html: mes()[2624] + '&nbsp;'">Information&nbsp;</td>
+</tr>
+<tr height="5px">
+<!--TODO-->
+<td></td>
+</tr>
+</tbody></table>
+<table id="contentrow" width="100%" border="0" cellspacing="0">
+<tbody><tr height="5px" valign="center">
+<td width="1%" rowspan="1500"></td>
+<td class="style363" width="50px" data-bind="text: mes()[62]">Тип</td>
+<td class="style353" width="350px" data-bind="text: mes()[2628]">Название</td>
+<td class="style376" width="150px" data-bind="text: mes()[2629]">Дата изменена</td>
+<td data-bind="attr: {width: tdWidth() }" rowspan="1500" width="1%"></td>
+</tr>
+<tr width="100%" height="5px">
+<td colspan="3">
+<div id="line"></div>
+</td>
+</tr>
+<!-- ko foreach: dataRows --><!-- /ko -->
+</tbody></table>
+</div>
+</div>
+</form>
+<script src="../js/jssrc/view_model/startwlm/Hme_postlst_info.viewmodel.js"></script><script type="text/javascript" src="../strings/rus/rus.js"></script>
+
+
+</body></html>
+
+==================================================
