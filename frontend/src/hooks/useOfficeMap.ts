@@ -1,7 +1,7 @@
 "use client";
 
-import {useState, useEffect, useRef, useCallback} from "react";
-import {api, Printer, BASE_URL, PrinterListResponse} from "@/service/api";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { api, Printer, PrinterListResponse } from "@/service/api";
 
 type Mode = "view" | "add" | "move";
 
@@ -22,159 +22,134 @@ export function useOfficeMap() {
 
     const mapContainerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        loadPrinters();
-        loadCurrentMap();
-    }, []);
-
-    const loadPrinters = async () => {
+    const loadPrinters = useCallback(async (isBackground = false) => {
+        if (!isBackground) setLoading(true);
         try {
             const data: PrinterListResponse = await api.getPrinters();
             setPrinters(data.printers);
             setTotalPrinters(data.total);
-        } catch (err) {
-            console.error("Ошибка загрузки списка принтеров:", err);
-        }
-    };
 
-    const loadCurrentMap = async () => {
+            setSelectedPrinter(prev => {
+                if (!prev) return null;
+                const updatedPrinter = data.printers.find(p => p.id === prev.id);
+                return updatedPrinter ? updatedPrinter : prev;
+            });
+        } catch (err) {
+            console.error("Ошибка при загрузке принтеров:", err);
+        } finally {
+            if (!isBackground) setLoading(false);
+        }
+    }, []);
+
+    const loadCurrentMap = useCallback(async () => {
         try {
             const data = await api.getCurrentMap();
-            setMapUrl(`${BASE_URL}${data.url}`);
+            setMapUrl(data.url);
         } catch (err) {
-            console.log("Карта на бэкенде пока не установлена.");
-            setMapUrl(null);
-        }
-    };
-
-    const getCoordsFromEvent = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!mapContainerRef.current) return null;
-        const rect = mapContainerRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        return {x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100};
-    };
-
-    const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        const target = e.target as HTMLElement;
-
-        // Клик на маркер — выбор принтера, закрываем форму создания
-        const marker = target.closest(".printer-marker") as HTMLElement | null;
-        if (marker) {
-            const printerId = marker.dataset.printerId;
-            const printer = printers.find(p => p.id === printerId);
-            if (printer) {
-                if (mode === "move") {
-                    setSelectedPrinter(printer);
-                } else {
-                    setSelectedPrinter(printer);
-                    setClickCoords(null);
-                    setMode("view");
-                }
-            }
-            return;
-        }
-
-        // Клик на пустое место
-        const coords = getCoordsFromEvent(e);
-        if (!coords) return;
-
-        if (mode === "move" && selectedPrinter) {
-            handleMovePrinter(selectedPrinter.id, coords.x, coords.y);
-            return;
-        }
-
-        setClickCoords(coords);
-        setSelectedPrinter(null);
-        setMode("add");
-    };
-
-    const handleMovePrinter = useCallback(async (id: string, x: number, y: number) => {
-        try {
-            await api.updatePrinter(id, {x, y});
-            setMode("view");
-            setSelectedPrinter(null);
-            loadPrinters();
-        } catch (err) {
-            alert("Не удалось переместить принтер.");
+            console.warn("Карта не найдена");
         }
     }, []);
 
-    const handleStartMove = useCallback(() => {
-        if (!selectedPrinter) return;
-        setMode("move");
-    }, [selectedPrinter]);
+    useEffect(() => {
+        loadPrinters(false);
+        loadCurrentMap();
 
-    const handleCancelMove = useCallback(() => {
-        setMode("view");
-        setSelectedPrinter(null);
-        setClickCoords(null);
-    }, []);
+        const FRONTEND_POLL_INTERVAL = 60000;
 
-    const handleMapUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files?.[0]) return;
-        setLoading(true);
-        try {
-            const response = await api.uploadMap(e.target.files[0]);
-            setMapUrl(`${BASE_URL}${response.url}`);
-            setClickCoords(null);
-            alert("Карта успешно загружена и отображена!");
-        } catch (err) {
-            alert("Не удалось загрузить файл. Убедитесь, что это валидный .svg");
-        } finally {
-            setLoading(false);
-        }
-    };
+        const intervalId = setInterval(() => {
+            loadPrinters(true);
+        }, FRONTEND_POLL_INTERVAL);
 
-    const handleCreatePrinter = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!clickCoords) return;
-
-        try {
-            await api.createPrinter({
-                ...newPrinter,
-                x: clickCoords.x,
-                y: clickCoords.y
-            });
-            setClickCoords(null);
-            setNewPrinter({name: "", ip: "", vendor: "hp"});
-            setMode("view");
-            loadPrinters();
-        } catch (err) {
-            alert("Не удалось добавить принтер. Проверьте правильность IP адреса.");
-        }
-    };
+        return () => clearInterval(intervalId);
+    }, [loadPrinters, loadCurrentMap]);
 
     const handleRefresh = useCallback(async (id: string) => {
         try {
             const updated = await api.refreshPrinter(id);
             setSelectedPrinter(updated);
-            loadPrinters();
+            loadPrinters(true);
         } catch (err) {
             alert("Ошибка опроса принтера по SNMP/сеть.");
         }
-    }, []);
+    }, [loadPrinters]);
 
     const handleDelete = useCallback(async (id: string) => {
         if (!confirm("Удалить принтер?")) return;
         try {
             await api.deletePrinter(id);
             setSelectedPrinter(null);
-            loadPrinters();
+            loadPrinters(false);
         } catch (err) {
             alert("Ошибка при удалении принтера.");
         }
-    }, []);
+    }, [loadPrinters]);
 
     const handleRename = useCallback(async (id: string, newName: string) => {
         try {
-            const updated = await api.updatePrinter(id, {name: newName});
+            const updated = await api.updatePrinter(id, { name: newName });
             setSelectedPrinter(updated);
-            loadPrinters();
+            loadPrinters(true);
         } catch (err) {
             alert("Не удалось переименовать принтер.");
         }
-    }, []);
+    }, [loadPrinters]);
+
+    const handleMapUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || !e.target.files[0]) return;
+        setLoading(true);
+        try {
+            await api.uploadMap(e.target.files[0]);
+            loadCurrentMap();
+        } catch (err) {
+            alert("Ошибка загрузки карты.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ИСПРАВЛЕННАЯ ФУНКЦИЯ
+    const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!mapContainerRef.current) return;
+        const rect = mapContainerRef.current.getBoundingClientRect();
+
+        // Вычисляем координаты клика в процентах
+        const x = Math.round(((e.clientX - rect.left) / rect.width) * 10000) / 100;
+        const y = Math.round(((e.clientY - rect.top) / rect.height) * 10000) / 100;
+
+        if (mode === "move" && selectedPrinter) {
+            // Если включен режим перемещения, обновляем координаты текущего принтера
+            api.updatePrinter(selectedPrinter.id, { x, y }).then(updated => {
+                setSelectedPrinter(updated);
+                setMode("view");
+                loadPrinters(true);
+            });
+        } else {
+            // Любой другой клик по карте открывает форму добавления нового принтера
+            setMode("add");
+            setClickCoords({ x, y });
+            setSelectedPrinter(null); // Закрываем карточку выбранного принтера, если она открыта
+        }
+    };
+
+    const handleCreatePrinter = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!clickCoords) return;
+        try {
+            await api.createPrinter({ ...newPrinter, x: clickCoords.x, y: clickCoords.y });
+            setMode("view");
+            setClickCoords(null);
+            setNewPrinter({ name: "", ip: "", vendor: "hp" });
+            loadPrinters(false);
+        } catch (err) {
+            alert("Ошибка при создании принтера.");
+        }
+    };
+
+    const handleStartMove = () => setMode("move");
+    const handleCancelMove = () => {
+        setMode("view");
+        setClickCoords(null);
+    };
 
     return {
         printers,

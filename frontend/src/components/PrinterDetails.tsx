@@ -64,7 +64,6 @@ export function PrinterDetails({printer, onRefresh, onDelete, onMove, onRename}:
                 <p><span className="text-zinc-500">IP:</span> {printer.ip}</p>
                 <p><span className="text-zinc-500">Бренд:</span> {printer.vendor.toUpperCase()}</p>
                 {printer.model && <p><span className="text-zinc-500">Модель:</span> {printer.model}</p>}
-                {printer.serial_number && <p><span className="text-zinc-500">S/N:</span> {printer.serial_number}</p>}
                 <p><span className="text-zinc-500">Позиция:</span> X:{printer.x}% Y:{printer.y}%</p>
             </div>
 
@@ -115,7 +114,7 @@ export function PrinterDetails({printer, onRefresh, onDelete, onMove, onRename}:
                     onClick={onMove}
                     className="btn-secondary text-xs"
                 >
-                    Редактировать
+                    Переместить
                 </button>
                 <button
                     onClick={() => onDelete(printer.id)}

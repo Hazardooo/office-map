@@ -81,7 +81,12 @@ export const api = {
     async getCurrentMap(): Promise<{ url: string }> {
         const res = await fetch(`${BASE_URL}/maps/current`);
         if (!res.ok) throw new Error("Карта отсутствует на сервере");
-        return res.json();
+
+        const data = await res.json();
+        // Подклеиваем адрес бэкенда к пути файла
+        data.url = `${BASE_URL}${data.url}`;
+
+        return data;
     },
 
     async uploadMap(file: File): Promise<{ url: string }> {
@@ -92,7 +97,12 @@ export const api = {
             method: "POST",
             body: formData,
         });
-        if (!res.ok) throw new Error("Ошибка при загрузке карты");
-        return res.json();
+        if (!res.ok) throw new Error("Ошибка загрузки");
+
+        const data = await res.json();
+        // Подклеиваем адрес бэкенда к пути файла
+        data.url = `${BASE_URL}${data.url}`;
+
+        return data;
     }
 };
