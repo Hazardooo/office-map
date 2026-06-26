@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
     APP_NAME: str = "FastAPI App"
+    DRAGONFLY_URL: str = "redis://localhost:6379/0"
 
     @computed_field
     @property
