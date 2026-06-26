@@ -1,128 +1,118 @@
-# parsers/hp.py
+# src/printers/parsers/hp.py
 import requests
 from bs4 import BeautifulSoup
 import re
-from typing import Dict
+from typing import Dict, Any
 
-from .base import BasePrinterParser
-
+from src.printers.parsers.base import BasePrinterParser
 
 class HPParser(BasePrinterParser):
-    """Парсер для принтеров HP."""
+    """Универсальный парсер для HP LaserJet. Ищет данные по всем возможным путям."""
 
-    def get_toner(self) -> Dict[str, str]:
+    def get_status(self) -> Dict[str, Any]:
+        # Список всех возможных путей, где HP хранит статус тонера
+        urls_to_try = [
+            f"http://{self.ip}/",  # Главная (часто делает редирект куда нужно)
+            f"http://{self.ip}/hp/device/info_deviceStatus.html",
+            f"http://{self.ip}/hp/device/this.html",
+            f"http://{self.ip}/hp/device/supply_status.htm",
+            f"http://{self.ip}/index.htm"
+        ]
+
+        toner_data = {}
+        model = "HP LaserJet"
+        hostname = "Unknown"
+
+        # Общие заголовки, чтобы принтер не отбрасывал запросы
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+        }
+
         try:
-            url = f"http://{self.ip}/"
-            response = requests.get(url, timeout=10)
-            response.raise_for_status()
+            for url in urls_to_try:
+                try:
+                    response = requests.get(url, timeout=10, headers=headers)
+                    if response.status_code != 200:
+                        continue
+                except requests.exceptions.RequestException:
+                    continue  # Если таймаут или ошибка сети, пробуем следующий URL
 
-            soup = BeautifulSoup(response.text, "html.parser")
+                soup = BeautifulSoup(response.text, "html.parser")
 
-            # Ищем секцию "Сведения о расходных материалах"
-            # По заголовку h3 с классом subTitle
-            result = {}
+                # 1. Поиск модели (учитываем неразрывные пробелы \xa0)
+                title_tag = soup.find("title")
+                if title_tag:
+                    title_text = title_tag.get_text(strip=True)
+                    parts = title_text.split("\xa0")
+                    if len(parts[0]) > 5:
+                        model = parts[0].strip()
 
-            # Находим все таблицы с классом mainContentArea
-            tables = soup.find_all("table", class_="mainContentArea")
+                # 2. Поиск Hostname
+                user_id_div = soup.find("div", class_="userId")
+                if user_id_div:
+                    text = user_id_div.get_text(strip=True)
+                    # HP часто разделяет имя, хост и IP длинными пробелами
+                    segments = [s.strip() for s in re.split(r'\xa0{2,}', text) if s.strip()]
+                    if len(segments) >= 3:
+                        hostname = segments[1]
+                    else:
+                        hw_match = re.search(r'(NPI[A-Fa-f0-9]+|CN[A-Fa-f0-9]+|DEV[A-Fa-f0-9]+)', text, re.IGNORECASE)
+                        if hw_match:
+                            hostname = hw_match.group(1).upper()
 
-            for table in tables:
-                # Ищем строки с данными о картридже
-                for tr in table.find_all("tr"):
-                    tds = tr.find_all("td")
-                    if len(tds) >= 2:
-                        # Первая ячейка — название картриджа
-                        name_cell = tds[0]
-                        name_text = name_cell.get_text(strip=True)
+                # 3. Парсинг тонера (Метод А: Графические индикаторы)
+                for td in soup.find_all("td", style=True):
+                    style = td.get("style", "").replace(" ", "").upper()
+                    width_match = re.search(r'WIDTH:(\d+)%', style)
+                    bg_match = re.search(r'BACKGROUND-COLOR:#([0-9A-F]{6})', style)
 
-                        # Ищем цвет в названии
-                        color = None
-                        if "Черный" in name_text or "Black" in name_text:
-                            color = "Черный"
-                        elif "Голубой" in name_text or "Cyan" in name_text:
-                            color = "Голубой"
-                        elif "Пурпурный" in name_text or "Magenta" in name_text:
-                            color = "Пурпурный"
-                        elif "Желтый" in name_text or "Yellow" in name_text:
-                            color = "Желтый"
+                    if width_match and bg_match:
+                        hex_color = bg_match.group(1)
+                        pct = width_match.group(1)
 
-                        # Вторая ячейка с процентом (alignRight)
-                        percent_cell = None
-                        for td in tds:
-                            if "alignRight" in str(td.get("class", [])):
-                                percent_cell = td
-                                break
+                        color_name = None
+                        if hex_color == "000000": color_name = "Черный"
+                        elif hex_color == "00FFFF": color_name = "Голубой"
+                        elif hex_color == "FF00FF": color_name = "Пурпурный"
+                        elif hex_color == "FFFF00": color_name = "Желтый"
 
-                        if color and percent_cell:
-                            percent_text = percent_cell.get_text(strip=True)
-                            match = re.search(r'(\d+)%', percent_text)
-                            if match:
-                                result[color] = f"{match.group(1)}%"
+                        if color_name and color_name not in toner_data:
+                            toner_data[color_name] = f"{pct}%"
 
-            # Альтернативный поиск — по ширине полосы тонера
-            if not result:
-                for td in soup.find_all("td"):
-                    style = td.get("style", "")
-                    if "BACKGROUND-COLOR: #000000" in style or "BACKGROUND-COLOR: black" in style:
-                        # Ищем соседнюю ячейку с процентом
-                        width_match = re.search(r'WIDTH:(\d+)%', style)
-                        if width_match:
-                            percent = width_match.group(1)
-                            # Ищем цвет рядом
-                            parent = td.find_parent("tr")
-                            if parent:
-                                for sibling in parent.find_all("td"):
-                                    text = sibling.get_text(strip=True)
-                                    if "Черный" in text:
-                                        result["Черный"] = f"{percent}%"
-                                        break
+                # 3. Парсинг тонера (Метод Б: Текстовый поиск, если графики нет)
+                if not toner_data:
+                    target_colors = {
+                        "черн": "Черный", "black": "Черный",
+                        "голуб": "Голубой", "cyan": "Голубой",
+                        "пурпур": "Пурпурный", "magenta": "Пурпурный",
+                        "желт": "Желтый", "yellow": "Желтый"
+                    }
+                    for el in soup.find_all(["tr", "div"]):
+                        row_text = el.get_text(" ", strip=True).lower()
+                        # Ищем цифры или пустые значения '--' или '?'
+                        pct_match = re.search(r'(\d+|--|\?)\s*%', row_text)
 
-            return result if result else {"error": "Данные о тонере не найдены"}
+                        if pct_match:
+                            val = pct_match.group(1)
+                            val = "0" if val in ["--", "?"] else val
+                            for trigger, rus_color in target_colors.items():
+                                if trigger in row_text and rus_color not in toner_data:
+                                    toner_data[rus_color] = f"{val}%"
+                                    break
 
-        except requests.RequestException as e:
-            return {"error": f"Ошибка запроса: {str(e)}"}
-        except Exception as e:
-            return {"error": str(e)}
+                # Если на текущей странице нашли данные тонера, дальше искать нет смысла
+                if toner_data:
+                    break
 
-    def get_status(self) -> Dict[str, str]:
-        try:
-            url = f"http://{self.ip}/"
-            response = requests.get(url, timeout=10)
-            response.raise_for_status()
-
-            soup = BeautifulSoup(response.text, "html.parser")
-
-            # Модель принтера
-            model = "Unknown"
-            title = soup.find("title")
-            if title:
-                model = title.get_text(strip=True).split("&nbsp;")[0]
-
-            # Имя устройства (NPI...)
-            hostname = "Unknown"
-            user_id_div = soup.find("div", class_="userId")
-            if user_id_div:
-                parts = user_id_div.get_text(strip=True).split()
-                for part in parts:
-                    if part.startswith("NPI") or part.startswith("CN"):
-                        hostname = part
-                        break
-
-            # Статус устройства
-            status = "Unknown"
-            status_cell = soup.find("td", id="deviceStatus_tableCell")
-            if status_cell:
-                status = status_cell.get_text(strip=True)
-
-            toner = self.get_toner()
-            if "error" in toner:
-                return toner
+            if not toner_data:
+                return {"error": "Уровень тонера не найден на странице"}
 
             return {
                 "model": model,
                 "hostname": hostname,
-                "status": status,
-                "toner": toner
+                "toner": toner_data
             }
 
         except Exception as e:
-            return {"error": str(e)}
+            return {"error": f"Ошибка парсинга HP: {str(e)}"}

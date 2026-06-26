@@ -1,58 +1,54 @@
-from typing import Literal
+from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, Depends
 
-from src.printers.parsers import get_parser
-from src.printers.schemas import TonerResponse, PrinterStatusResponse
+from src.printers import schemas
+from src.printers.dependencies import get_printer_service
+from src.printers.schemas import PrinterListResponse
+from src.printers.service import PrinterService
 
 router = APIRouter(prefix="/printers", tags=["printers"])
 
-VENDOR_ENUM = Literal["kyocera", "canon", "hp"]
 
-
-@router.get("/{vendor}/{ip}/toner", response_model=TonerResponse)
-def get_printer_toner(
-        vendor: VENDOR_ENUM = Path(..., description="Производитель: kyocera"),
-        ip: str = Path(..., description="IP-адрес принтера")
+@router.post("/", response_model=schemas.PrinterResponse)
+async def create_printer(
+        data: schemas.PrinterCreate,
+        service: PrinterService = Depends(get_printer_service),
 ):
-    """
-    Получает уровень тонера.
-
-    **vendors:** `kyocera`
-    """
-    try:
-        parser = get_parser(vendor, ip)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    result = parser.get_toner()
-
-    if "error" in result:
-        raise HTTPException(status_code=503, detail=result["error"])
-
-    return TonerResponse(ip=ip, vendor=vendor, toner=result)
+    return await service.create(data)
 
 
-@router.get("/{vendor}/{ip}/status", response_model=PrinterStatusResponse)
-def get_printer_status(
-        vendor: VENDOR_ENUM = Path(..., description="Производитель"),
-        ip: str = Path(..., description="IP-адрес принтера")
+@router.get("/", response_model=PrinterListResponse)
+async def get_all_printers(
+        service: PrinterService = Depends(get_printer_service),
 ):
-    """Полный статус принтера."""
-    try:
-        parser = get_parser(vendor, ip)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-    result = parser.get_status()
-
-    if "error" in result:
-        raise HTTPException(status_code=503, detail=result["error"])
-
-    return PrinterStatusResponse(
-        ip=ip,
-        vendor=vendor,
-        model=result.get("model"),
-        hostname=result.get("hostname"),
-        toner=result.get("toner")
+    printers = await service.get_all()
+    return PrinterListResponse(
+        total=len(printers),
+        printers=printers,
     )
+
+@router.put("/{printer_id}", response_model=schemas.PrinterResponse)
+async def update_printer(
+        printer_id: UUID,
+        data: schemas.PrinterUpdate,
+        service: PrinterService = Depends(get_printer_service),
+):
+    return await service.update(printer_id, data)
+
+
+@router.post("/{printer_id}/refresh", response_model=schemas.PrinterResponse)
+async def refresh_printer(
+        printer_id: UUID,
+        service: PrinterService = Depends(get_printer_service),
+):
+    return await service.refresh(printer_id)
+
+
+@router.delete("/{printer_id}")
+async def delete_printer(
+        printer_id: UUID,
+        service: PrinterService = Depends(get_printer_service),
+):
+    await service.delete(printer_id)
+    return {"ok": True}

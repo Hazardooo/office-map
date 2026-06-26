@@ -1,18 +1,33 @@
 import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
-  title: "Office Map",
-  description: "Office Printer Status Map",
+  title: "Office Map — Printer Monitor",
+  description: "Interactive office floor plan with printer monitoring",
 };
 
 export default function RootLayout({
-  children,
-}: Readonly<{
+                                     children,
+                                   }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru">
-      <body style={{ margin: 0, padding: 0, backgroundColor: "#f9fafb" }}>{children}</body>
-    </html>
+      <html
+          lang="en"
+          className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      >
+      <body className="min-h-full flex flex-col">{children}</body>
+      </html>
   );
 }

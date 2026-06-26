@@ -1,80 +1,124 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from bs4 import BeautifulSoup
+# src/printers/parsers/kyocera.py
+import logging
+import re
 import time
-from typing import Dict
+from typing import Any, Dict
+from bs4 import BeautifulSoup
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import TimeoutException
 
 from src.printers.parsers.base import BasePrinterParser
+from src.printers.parsers.pool import get_pool
 
-
-CHROME_OPTIONS = Options()
-CHROME_OPTIONS.add_argument("--headless")
-CHROME_OPTIONS.add_argument("--ignore-certificate-errors")
-CHROME_OPTIONS.add_argument("--no-sandbox")
-CHROME_OPTIONS.add_argument("--disable-dev-shm-usage")
-
+logger = logging.getLogger(__name__)
 
 class KyoceraParser(BasePrinterParser):
-    """Парсер для принтеров Kyocera."""
+    """Парсер Kyocera (HTTP), извлекающий данные из вложенных фреймов wlmframe -> toner."""
+
+    def __init__(self, ip: str):
+        super().__init__(ip)
+        self.base_url = f"http://{ip}"
 
     def get_toner(self) -> Dict[str, str]:
-        driver = None
+        status = self.get_status()
+        return status.get("toner", status)
+
+    def get_status(self) -> Dict[str, Any]:
+        pool = get_pool()
         try:
-            driver = webdriver.Chrome(options=CHROME_OPTIONS)
-            driver.get(f"{self.base_url}/wlmpor/index.htm")
+            driver = pool.acquire(timeout=25)
+        except Exception:
+            return {"error": "Нет доступных слотов в пуле браузеров"}
 
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.NAME, "wlmframe"))
-            )
-            driver.switch_to.frame("wlmframe")
+        try:
+            driver.set_page_load_timeout(15)
+            driver.set_script_timeout(15)
 
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.ID, "toner"))
-            )
-            time.sleep(3)
-            driver.switch_to.frame("toner")
-            time.sleep(2)
+            try:
+                driver.switch_to.default_content()
+            except Exception:
+                pass
 
-            soup = BeautifulSoup(driver.page_source, "html.parser")
-            toner_table = soup.find("table", id="contentrow")
+            try:
+                driver.get(self.base_url)
+            except TimeoutException:
+                try: driver.execute_script("window.stop();")
+                except Exception: pass
+            except Exception as http_err:
+                return {"error": f"Принтер недоступен: {str(http_err)}"}
 
-            if not toner_table:
-                return {"error": "Таблица тонера не найдена"}
+            # Шаг 1: Заходим в главный фрейм
+            try:
+                WebDriverWait(driver, 10).until(
+                    EC.frame_to_be_available_and_switch_to_it((By.NAME, "wlmframe"))
+                )
+            except TimeoutException:
+                return {"error": "Главный фрейм 'wlmframe' не найден"}
 
-            result = {}
-            for tr in toner_table.find_all("tr"):
-                tds = tr.find_all("td")
-                row_data = [td.get_text(strip=True) for td in tds if td.get_text(strip=True)]
+            # Ждем рендеринг JS
+            time.sleep(4.0)
 
-                color = None
-                percent = None
-                for text in row_data:
-                    if text in ["Черный", "Голубой", "Пурпурный", "Желтый",
-                                "Black", "Cyan", "Magenta", "Yellow"]:
-                        color = text
-                    if "%" in text:
-                        percent = text
+            soup_main = BeautifulSoup(driver.page_source, "html.parser")
+            model = "Kyocera ECOSYS"
+            hostname = "Unknown"
 
-                if color and percent:
-                    result[color] = percent
+            # Парсинг метаданных (согласно дампу, они лежат в <td id="info">)
+            infos = soup_main.find_all("td", id="info")
+            for info in infos:
+                text = info.get_text(strip=True)
+                if "Модель :" in text:
+                    model = text.split("Модель :")[-1].strip()
+                elif "Имя хоста :" in text:
+                    hostname = text.split("Имя хоста :")[-1].strip()
 
-            return result if result else {"error": "Данные о тонере не найдены"}
+            # Шаг 2: Заходим во вложенный фрейм 'toner'
+            try:
+                WebDriverWait(driver, 5).until(
+                    EC.frame_to_be_available_and_switch_to_it((By.ID, "toner"))
+                )
+            except TimeoutException:
+                return {"error": "Не удалось найти вложенный фрейм 'toner'"}
+
+            # Парсинг тонера (согласно дампу, таблица id="contentrow")
+            soup_toner = BeautifulSoup(driver.page_source, "html.parser")
+            toner_data = {}
+
+            toner_table = soup_toner.find("table", id="contentrow")
+            if toner_table:
+                target_colors = {
+                    "Черный": "Черный", "Black": "Черный",
+                    "Голубой": "Голубой", "Cyan": "Голубой",
+                    "Пурпурный": "Пурпурный", "Magenta": "Пурпурный",
+                    "Желтый": "Желтый", "Yellow": "Желтый"
+                }
+
+                for tr in toner_table.find_all("tr"):
+                    row_text = tr.get_text(" ", strip=True)
+                    pct_match = re.search(r'(\d+)\s*%', row_text)
+
+                    if pct_match:
+                        for trigger, rus_color in target_colors.items():
+                            if trigger in row_text and rus_color not in toner_data:
+                                toner_data[rus_color] = f"{pct_match.group(1)}%"
+                                break
+
+            if not toner_data:
+                return {"error": "Не удалось извлечь данные тонера из таблицы фрейма"}
+
+            return {
+                "model": model,
+                "hostname": hostname,
+                "toner": toner_data
+            }
 
         except Exception as e:
-            return {"error": str(e)}
+            logger.error(f"Ошибка парсинга Kyocera ({self.ip}): {str(e)}")
+            return {"error": f"Ошибка: {str(e)}"}
         finally:
-            if driver:
-                driver.quit()
-
-    def get_status(self) -> Dict[str, str]:
-        toner = self.get_toner()
-        if "error" in toner:
-            return toner
-        return {
-            "model": "ECOSYS P3060dn",
-            "hostname": "Unknown",
-            "toner": toner
-        }
+            try:
+                driver.switch_to.default_content()
+            except Exception:
+                pass
+            pool.release(driver)
