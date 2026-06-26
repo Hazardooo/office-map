@@ -14,13 +14,12 @@ from src.printers.parsers.pool import get_pool
 
 logger = logging.getLogger(__name__)
 
-
 class KyoceraParser(BasePrinterParser):
-    """Парсер Kyocera, который дает странице полностью прогрузиться перед сбором данных."""
+    """Парсер Kyocera (HTTP), извлекающий данные из вложенных фреймов wlmframe -> toner."""
 
     def __init__(self, ip: str):
         super().__init__(ip)
-        self.base_url = f"https://{ip}"
+        self.base_url = f"http://{ip}"
 
     def get_toner(self) -> Dict[str, str]:
         status = self.get_status()
@@ -37,121 +36,86 @@ class KyoceraParser(BasePrinterParser):
             driver.set_page_load_timeout(15)
             driver.set_script_timeout(15)
 
-            # Сбрасываем контекст фреймов
             try:
                 driver.switch_to.default_content()
             except Exception:
                 pass
 
-            # Открываем принтер (HTTPS -> HTTP)
-            url_to_open = f"https://{self.ip}"
             try:
-                driver.get(url_to_open)
+                driver.get(self.base_url)
             except TimeoutException:
                 try: driver.execute_script("window.stop();")
                 except Exception: pass
-            except Exception as e:
-                err_msg = str(e).lower()
-                if any(x in err_msg for x in ["refused", "reset", "failed", "unreachable"]):
-                    url_to_open = f"http://{self.ip}"
-                    try:
-                        driver.get(url_to_open)
-                    except TimeoutException:
-                        try: driver.execute_script("window.stop();")
-                        except Exception: pass
-                    except Exception as http_err:
-                        return {"error": f"Принтер недоступен: {str(http_err)}"}
+            except Exception as http_err:
+                return {"error": f"Принтер недоступен: {str(http_err)}"}
 
-            # Ждем появления главного фрейма 'wlmframe' и заходим в него
+            # Шаг 1: Заходим в главный фрейм
             try:
-                WebDriverWait(driver, 5).until(
+                WebDriverWait(driver, 10).until(
                     EC.frame_to_be_available_and_switch_to_it((By.NAME, "wlmframe"))
                 )
             except TimeoutException:
-                logger.debug(f"Фрейм wlmframe не найден на {self.ip}")
+                return {"error": "Главный фрейм 'wlmframe' не найден"}
 
-            # ==== ВОТ ОН, ТОТ САМЫЙ ХОД ====
-            # Жестко спим 5 секунд. Даем тяжелому веб-интерфейсу Kyocera полностью
-            # отрендерить Knockout.js, стянуть все скрипты и вставить цифры в DOM.
-            time.sleep(5.0)
+            # Ждем рендеринг JS
+            time.sleep(4.0)
 
-            soup = BeautifulSoup(driver.page_source, "html.parser")
-
-            # Парсим название модели
+            soup_main = BeautifulSoup(driver.page_source, "html.parser")
             model = "Kyocera ECOSYS"
-            model_td = soup.find("td", id="info") or soup.find(id="wlm_01")
-            if model_td:
-                model_text = model_td.get_text(strip=True)
-                if "Модель" in model_text and ":" in model_text:
-                    model = model_text.split(":", 1)[1].strip()
-                elif model_text:
-                    model = model_text[:30]
+            hostname = "Unknown"
 
+            # Парсинг метаданных (согласно дампу, они лежат в <td id="info">)
+            infos = soup_main.find_all("td", id="info")
+            for info in infos:
+                text = info.get_text(strip=True)
+                if "Модель :" in text:
+                    model = text.split("Модель :")[-1].strip()
+                elif "Имя хоста :" in text:
+                    hostname = text.split("Имя хоста :")[-1].strip()
+
+            # Шаг 2: Заходим во вложенный фрейм 'toner'
+            try:
+                WebDriverWait(driver, 5).until(
+                    EC.frame_to_be_available_and_switch_to_it((By.ID, "toner"))
+                )
+            except TimeoutException:
+                return {"error": "Не удалось найти вложенный фрейм 'toner'"}
+
+            # Парсинг тонера (согласно дампу, таблица id="contentrow")
+            soup_toner = BeautifulSoup(driver.page_source, "html.parser")
             toner_data = {}
 
-            # Ищем все строки (tr), где есть упоминания тонера/картриджей или знака %
-            # на прогруженной странице внутри таблицы contentrow
-            toner_table = soup.find("table", id="contentrow")
+            toner_table = soup_toner.find("table", id="contentrow")
             if toner_table:
-                # Мапа для определения цвета по фону полоски индикатора
-                bgcolor_map = {
-                    "#000000": "Черный",
-                    "#0099ff": "Голубой",
-                    "#ff0099": "Пурпурный",
-                    "#ffff00": "Желтый"
+                target_colors = {
+                    "Черный": "Черный", "Black": "Черный",
+                    "Голубой": "Голубой", "Cyan": "Голубой",
+                    "Пурпурный": "Пурпурный", "Magenta": "Пурпурный",
+                    "Желтый": "Желтый", "Yellow": "Желтый"
                 }
 
                 for tr in toner_table.find_all("tr"):
-                    tr_text = tr.get_text(" ", strip=True)
-                    match = re.search(r'(\d+)%', tr_text)
-                    if match:
-                        percent_val = match.group(0)
+                    row_text = tr.get_text(" ", strip=True)
+                    pct_match = re.search(r'(\d+)\s*%', row_text)
 
-                        # Метод 1: Ищем по цвету индикатора (самый точный)
-                        has_color = False
-                        for td in tr.find_all("td", bgcolor=True):
-                            bg = td["bgcolor"].strip().lower()
-                            if bg in bgcolor_map:
-                                toner_data[bgcolor_map[bg]] = percent_val
-                                has_color = True
+                    if pct_match:
+                        for trigger, rus_color in target_colors.items():
+                            if trigger in row_text and rus_color not in toner_data:
+                                toner_data[rus_color] = f"{pct_match.group(1)}%"
                                 break
 
-                        # Метод 2: Если bgcolor нет, но в тексте строки написано имя цвета
-                        if not has_color:
-                            tr_text_lower = tr_text.lower()
-                            if "black" in tr_text_lower or "чёрн" in tr_text_lower or "черн" in tr_text_lower:
-                                toner_data["Черный"] = percent_val
-                            elif "cyan" in tr_text_lower or "голуб" in tr_text_lower:
-                                toner_data["Голубой"] = percent_val
-                            elif "magenta" in tr_text_lower or "пурпур" in tr_text_lower:
-                                toner_data["Пурпурный"] = percent_val
-                            elif "yellow" in tr_text_lower or "желт" in tr_text_lower:
-                                toner_data["Желтый"] = percent_val
-
-            # Если таблица пустая, но страница точно прогрузилась (полный фолбэк)
             if not toner_data:
-                all_pct = [f"{p}%" for p in re.findall(r'(\d+)%', soup.get_text()) if int(p) <= 100]
-                if len(all_pct) >= 4:
-                    toner_data["Черный"] = all_pct[0]
-                    toner_data["Голубой"] = all_pct[1]
-                    toner_data["Пурпурный"] = all_pct[2]
-                    toner_data["Желтый"] = all_pct[3]
-                elif all_pct:
-                    toner_data["Черный"] = all_pct[0]
-
-            # Если даже после 5 секунд сна пусто — возвращаем ошибку, чтобы ты видел проблему
-            if not toner_data:
-                return {"error": "Не удалось найти данные тонера после полной загрузки страницы"}
+                return {"error": "Не удалось извлечь данные тонера из таблицы фрейма"}
 
             return {
                 "model": model,
-                "hostname": "Unknown",
+                "hostname": hostname,
                 "toner": toner_data
             }
 
         except Exception as e:
             logger.error(f"Ошибка парсинга Kyocera ({self.ip}): {str(e)}")
-            return {"error": f"Ошибка парсинга Kyocera: {str(e)}"}
+            return {"error": f"Ошибка: {str(e)}"}
         finally:
             try:
                 driver.switch_to.default_content()
