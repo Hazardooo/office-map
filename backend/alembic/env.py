@@ -5,7 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from src.database import Base
+from src.database.postgres import Base
 from src.settings import settings
 
 # this is the Alembic Config object, which provides
@@ -19,7 +19,6 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from src.printers.models import Printer
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,

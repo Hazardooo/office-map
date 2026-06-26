@@ -4,7 +4,7 @@ from typing import AsyncGenerator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 from src.settings import settings
-from src.exceptions import DBConnectionError
+from src.database.exceptions import PostgreSQLUnavailable
 
 
 class Base(DeclarativeBase):
@@ -42,4 +42,4 @@ async def get_postgres() -> AsyncGenerator[AsyncSession, None]:
         async with get_db_session() as session:
             yield session
     except OSError:
-        raise DBConnectionError()
+        raise PostgreSQLUnavailable()

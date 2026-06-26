@@ -3,13 +3,18 @@ import logging
 from datetime import datetime
 from typing import List
 
+# ИСПРАВЛЕНИЕ 1: Импортируем именно асинхронную версию redis
+import redis.asyncio as redis
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 
-from src.database import AsyncSessionLocal
+from src.database.postgres import AsyncSessionLocal
 from src.printers import models
+from src.printers.cache import CachedPrinterRepository
 from src.printers.parsers.pool import init_pool
+from src.printers.repository import PrinterRepository
 from src.printers.service import PrinterService
+from src.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -22,49 +27,69 @@ class PrinterScheduler:
         self.pool_size = pool_size
 
     async def _refresh_all(self):
-        """Опрос всех принтеров и обновление БД."""
-        async with AsyncSessionLocal() as session:
-            service = PrinterService(session)
-            printers: List[models.Printer] = await service.get_all()
+        """
+        Метод опроса принтеров.
+        Собираем цепочку: Session -> RawRepo -> CachedRepo -> Service
+        """
+        logger.info("Запуск фонового обновления принтеров...")
 
-            # Извлекаем данные в простые типы ПРИ ЖИВОЙ сессии,
-            # чтобы избежать DetachedInstanceError в параллельных задачах
-            printers_data = [(p.id, p.ip) for p in printers]
+        try:
+            # ИСПРАВЛЕНИЕ 2: Открываем Redis ДО открытия сессии БД
+            redis_client = await redis.from_url(settings.DRAGONFLY_URL, decode_responses=True)
+            try:
+                # ИСПРАВЛЕНИЕ 3: Убрано дублирование контекстного менеджера AsyncSessionLocal
+                async with AsyncSessionLocal() as session:
+                    raw_repo = PrinterRepository(session)
+                    cached_repo = CachedPrinterRepository(raw_repo, redis_client)
+                    service = PrinterService(cached_repo)
 
-        if not printers_data:
-            logger.info("Нет принтеров для опроса")
-            return
+                    # ИСПРАВЛЕНИЕ 4: Теперь операции выполняются ДО закрытия redis_client
+                    printers: List[models.Printer] = await service.get_all()
 
-        logger.info(f"Начинаю фоновый опрос {len(printers_data)} принтеров...")
+                    logger.info(f"Найдено {len(printers)} принтеров для обновления.")
 
-        # Передаем id и ip раздельно в качестве атомарных значений
-        tasks = [self._refresh_single(p_id, p_ip) for p_id, p_ip in printers_data]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+                    for printer in printers:
+                        try:
+                            await service.refresh(printer.id)
+                        except Exception as e:
+                            logger.error(f"Ошибка обновления принтера {printer.ip}: {e}")
+                    logger.info("Прогрев кэша после обновления...")
+                    await service.get_all()
+                    logger.info("Фоновое обновление завершено.")
+            finally:
+                # Закрываем Redis ТОЛЬКО когда все принтеры обновились
+                await redis_client.close()
 
-        success = sum(1 for r in results if r is True)
-        failed = sum(1 for r in results if r is False or isinstance(r, Exception))
-
-        logger.info(f"Фоновый опрос завершён: {success} успешно, {failed} ошибок")
+        except Exception as e:
+            logger.error(f"Критическая ошибка в планировщике: {e}")
 
     async def _refresh_single(self, printer_id, printer_ip: str) -> bool:
         """Каждый принтер — изолированная сессия + ограничение concurrency."""
         async with self.semaphore:
-            async with AsyncSessionLocal() as session:
-                service = PrinterService(session)
+            try:
+                # ИСПРАВЛЕНИЕ 5: Приводим _refresh_single к новой архитектуре с кэшем
+                redis_client = await redis.from_url(settings.DRAGONFLY_URL, decode_responses=True)
                 try:
-                    # Сервис выполняет парсинг по ID
-                    updated_printer = await service.refresh(printer_id)
+                    async with AsyncSessionLocal() as session:
+                        raw_repo = PrinterRepository(session)
+                        cached_repo = CachedPrinterRepository(raw_repo, redis_client)
+                        service = PrinterService(cached_repo)
 
-                    # Проверяем статус через возвращенный из свежей сессии объект
-                    if updated_printer and not updated_printer.is_online:
-                        logger.warning(f"❌ Принтер {printer_ip} не обновился (переведен в offline из-за ошибки)")
-                        return False
+                        # Сервис выполняет парсинг по ID
+                        updated_printer = await service.refresh(printer_id)
 
-                    logger.info(f"✅ Принтер {printer_ip} успешно обновлен планировщиком.")
-                    return True
-                except Exception as e:
-                    logger.error(f"❌ Критическая ошибка при опросе {printer_ip}: {e}")
-                    return False
+                        # Проверяем статус через возвращенный из свежей сессии объект
+                        if updated_printer and not updated_printer.is_online:
+                            logger.warning(f"❌ Принтер {printer_ip} не обновился (переведен в offline из-за ошибки)")
+                            return False
+
+                        logger.info(f"✅ Принтер {printer_ip} успешно обновлен планировщиком.")
+                        return True
+                finally:
+                    await redis_client.close()
+            except Exception as e:
+                logger.error(f"❌ Критическая ошибка при опросе {printer_ip}: {e}")
+                return False
 
     def start(self):
         init_pool(max_drivers=self.pool_size)

@@ -4,7 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from src.exceptions import DBConnectionError
+from src.database.exceptions import PostgreSQLUnavailable, DragonflyUnavailable
 from src.maps.exceptions import InvalidFormatError, FileTooLargeError, MapNotFoundError, SecurityError, MapError
 from src.printers.exceptions import PrinterNotFoundError, PrinterParseError, PrinterConnectionError, PrinterError
 
@@ -81,11 +81,18 @@ def register_error_handlers(app: FastAPI) -> None:
 
     # --- Database errors ---
 
-    @app.exception_handler(DBConnectionError)
-    async def db_connection_handler(request: Request, exc: DBConnectionError):
+    @app.exception_handler(PostgreSQLUnavailable)
+    async def db_connection_handler(request: Request, exc: PostgreSQLUnavailable):
         return JSONResponse(
             status_code=503,
-            content={"detail": "Database connection failed", "code": "DB_CONNECTION_ERROR"},
+            content={"detail": "PostgreSQL Database connection failed", "code": "DB_CONNECTION_ERROR"},
+        )
+
+    @app.exception_handler(DragonflyUnavailable)
+    async def db_connection_handler(request: Request, exc: PostgreSQLUnavailable):
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "Dragonfly Database connection failed", "code": "DB_CONNECTION_ERROR"},
         )
 
     @app.exception_handler(IntegrityError)

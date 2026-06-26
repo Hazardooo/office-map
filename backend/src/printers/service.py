@@ -4,6 +4,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
+from src.printers.cache import CachedPrinterRepository
 from src.printers.repository import PrinterRepository
 from src.printers.parsers import get_parser
 from src.printers import schemas, models
@@ -11,8 +12,8 @@ from src.printers.exceptions import PrinterNotFoundError, PrinterParseError
 
 
 class PrinterService:
-    def __init__(self, db: AsyncSession):
-        self.repo = PrinterRepository(db)
+    def __init__(self, repo): # Или интерфейс IPrinterRepository
+        self.repo = repo
 
     async def create(self, data: schemas.PrinterCreate) -> models.Printer:
         # Проверяем уникальность IP на уровне бизнес-логики
