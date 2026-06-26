@@ -1,3 +1,4 @@
+# src/error_handlers.py
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -8,12 +9,20 @@ from src.database.exceptions import PostgreSQLUnavailable, DragonflyUnavailable
 from src.maps.exceptions import InvalidFormatError, FileTooLargeError, MapNotFoundError, SecurityError, MapError
 from src.printers.exceptions import PrinterNotFoundError, PrinterParseError, PrinterConnectionError, PrinterError
 
+# Импортируем новые исключения парсеров
+from src.printers.parsers.exceptions import (
+    ParserError,
+    PoolTimeoutError,
+    ParserTimeoutError,
+    ParserAuthError,
+    ParserDOMError,
+    ParserUnknownModelError
+)
 
 def register_error_handlers(app: FastAPI) -> None:
     """Регистрирует все обработчики ошибок в приложении FastAPI."""
 
     # --- Map errors ---
-
     @app.exception_handler(InvalidFormatError)
     async def invalid_format_handler(request: Request, exc: InvalidFormatError):
         return JSONResponse(
@@ -49,8 +58,50 @@ def register_error_handlers(app: FastAPI) -> None:
             content={"detail": str(exc), "code": "MAP_ERROR"},
         )
 
-    # --- Printer errors ---
+    # --- Parser errors ---
+    @app.exception_handler(PoolTimeoutError)
+    async def pool_timeout_handler(request: Request, exc: PoolTimeoutError):
+        return JSONResponse(
+            status_code=503, # 503 Service Unavailable (сервер перегружен запросами)
+            content={"detail": str(exc), "code": "POOL_TIMEOUT"},
+        )
 
+    @app.exception_handler(ParserTimeoutError)
+    async def parser_timeout_handler(request: Request, exc: ParserTimeoutError):
+        return JSONResponse(
+            status_code=504, # 504 Gateway Timeout (принтер не ответил)
+            content={"detail": str(exc), "code": "PARSER_TIMEOUT"},
+        )
+
+    @app.exception_handler(ParserAuthError)
+    async def parser_auth_handler(request: Request, exc: ParserAuthError):
+        return JSONResponse(
+            status_code=401, # 401 Unauthorized
+            content={"detail": str(exc), "code": "PARSER_AUTH_ERROR"},
+        )
+
+    @app.exception_handler(ParserDOMError)
+    async def parser_dom_handler(request: Request, exc: ParserDOMError):
+        return JSONResponse(
+            status_code=502, # 502 Bad Gateway (принтер вернул невалидные данные)
+            content={"detail": str(exc), "code": "PARSER_DOM_ERROR"},
+        )
+
+    @app.exception_handler(ParserUnknownModelError)
+    async def parser_unknown_model_handler(request: Request, exc: ParserUnknownModelError):
+        return JSONResponse(
+            status_code=422,
+            content={"detail": str(exc), "code": "PARSER_UNKNOWN_MODEL"},
+        )
+
+    @app.exception_handler(ParserError)
+    async def parser_generic_handler(request: Request, exc: ParserError):
+        return JSONResponse(
+            status_code=500,
+            content={"detail": str(exc), "code": "PARSER_ERROR"},
+        )
+
+    # --- Printer errors (Базовые) ---
     @app.exception_handler(PrinterNotFoundError)
     async def printer_not_found_handler(request: Request, exc: PrinterNotFoundError):
         return JSONResponse(
@@ -80,16 +131,16 @@ def register_error_handlers(app: FastAPI) -> None:
         )
 
     # --- Database errors ---
-
     @app.exception_handler(PostgreSQLUnavailable)
-    async def db_connection_handler(request: Request, exc: PostgreSQLUnavailable):
+    async def postgres_connection_handler(request: Request, exc: PostgreSQLUnavailable):
         return JSONResponse(
             status_code=503,
             content={"detail": "PostgreSQL Database connection failed", "code": "DB_CONNECTION_ERROR"},
         )
 
     @app.exception_handler(DragonflyUnavailable)
-    async def db_connection_handler(request: Request, exc: PostgreSQLUnavailable):
+    async def dragonfly_connection_handler(request: Request, exc: DragonflyUnavailable):
+        # Исправил опечатку в параметрах: было exc: PostgreSQLUnavailable
         return JSONResponse(
             status_code=503,
             content={"detail": "Dragonfly Database connection failed", "code": "DB_CONNECTION_ERROR"},
@@ -110,7 +161,6 @@ def register_error_handlers(app: FastAPI) -> None:
         )
 
     # --- Framework errors ---
-
     @app.exception_handler(RequestValidationError)
     async def validation_handler(request: Request, exc: RequestValidationError):
         return JSONResponse(
@@ -129,7 +179,6 @@ def register_error_handlers(app: FastAPI) -> None:
         )
 
     # --- Fallback ---
-
     @app.exception_handler(Exception)
     async def generic_exception_handler(request: Request, exc: Exception):
         return JSONResponse(
