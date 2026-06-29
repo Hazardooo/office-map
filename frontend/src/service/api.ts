@@ -65,7 +65,7 @@ export const api = {
     async createPrinter(data: PrinterCreate): Promise<Printer> {
         const res = await fetch(`${BASE_URL}/printers/`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {"Content-Type": "application/json"},
             body: JSON.stringify(data),
         });
         if (!res.ok) {
@@ -78,7 +78,7 @@ export const api = {
     async updatePrinter(id: string, data: Partial<Printer>): Promise<Printer> {
         const res = await fetch(`${BASE_URL}/printers/${id}`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: {"Content-Type": "application/json"},
             body: JSON.stringify(data),
         });
         if (!res.ok) throw new Error("Error updating printer");
@@ -86,12 +86,12 @@ export const api = {
     },
 
     async deletePrinter(id: string): Promise<void> {
-        const res = await fetch(`${BASE_URL}/printers/${id}`, { method: "DELETE" });
+        const res = await fetch(`${BASE_URL}/printers/${id}`, {method: "DELETE"});
         if (!res.ok) throw new Error("Error deleting printer");
     },
 
     async refreshPrinter(id: string): Promise<Printer> {
-        const res = await fetch(`${BASE_URL}/printers/${id}/refresh`, { method: "POST" });
+        const res = await fetch(`${BASE_URL}/printers/${id}/refresh`, {method: "POST"});
         if (!res.ok) throw new Error("Error refreshing printer");
         return res.json();
     },
@@ -135,7 +135,7 @@ export const api = {
     async createCartridge(data: CartridgeCreate): Promise<Cartridge> {
         const res = await fetch(`${BASE_URL}/cartridges/`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {"Content-Type": "application/json"},
             body: JSON.stringify(data),
         });
         if (!res.ok) throw new Error("Ошибка при добавлении");
@@ -145,7 +145,7 @@ export const api = {
     async updateCartridge(id: string, data: CartridgeUpdate): Promise<Cartridge> {
         const res = await fetch(`${BASE_URL}/cartridges/${id}`, {
             method: "PATCH",
-            headers: { "Content-Type": "application/json" },
+            headers: {"Content-Type": "application/json"},
             body: JSON.stringify(data),
         });
         if (!res.ok) throw new Error("Ошибка при обновлении");
@@ -153,7 +153,10 @@ export const api = {
     },
 
     async deleteCartridge(id: string): Promise<void> {
-        const res = await fetch(`${BASE_URL}/cartridges/${id}`, { method: "DELETE" });
+        const res = await fetch(`${BASE_URL}/cartridges/${id}`, {
+            method: "DELETE",
+        });
+        if (res.status === 204) return;
         if (!res.ok) throw new Error("Ошибка при удалении");
     }
 };

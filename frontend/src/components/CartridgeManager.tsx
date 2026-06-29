@@ -101,7 +101,7 @@ export function CartridgeManager({
     };
 
     return (
-        <div className="card-container border-t-4 border-t-amber-600 mt-auto">
+        <div className="card-container border-t-4 border-t-amber-600">
             <div className="flex justify-between items-center mb-4">
                 <h4 className="font-bold text-zinc-100">База картриджей</h4>
                 {!isLinking && (
