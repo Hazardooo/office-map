@@ -1,147 +1,159 @@
-"use client";
-
-import { useState, useEffect, useRef, useCallback } from "react";
-import { api, Printer, PrinterListResponse } from "@/service/api";
-
-type Mode = "view" | "add" | "move";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { api, Printer, Cartridge } from "@/service/api";
 
 export function useOfficeMap() {
     const [printers, setPrinters] = useState<Printer[]>([]);
     const [totalPrinters, setTotalPrinters] = useState(0);
     const [mapUrl, setMapUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [clickCoords, setClickCoords] = useState<{ x: number; y: number } | null>(null);
-    const [selectedPrinter, setSelectedPrinter] = useState<Printer | null>(null);
-    const [mode, setMode] = useState<Mode>("view");
 
-    const [newPrinter, setNewPrinter] = useState({
+    // Картриджи
+    const [cartridges, setCartridges] = useState<Cartridge[]>([]);
+    const [selectedCartridgeId, setSelectedCartridgeId] = useState<string | null>(null);
+
+    // НОВЫЕ СТЕЙТЫ ДЛЯ ИНТЕРАКТИВНОСТИ НА КАРТЕ
+    const [hoveredCartridgeId, setHoveredCartridgeId] = useState<string | null>(null);
+    const [isLinking, setIsLinking] = useState(false);
+    const [linkingPrinterIds, setLinkingPrinterIds] = useState<string[]>([]);
+
+    const [mode, setMode] = useState<"view" | "add" | "move">("view");
+    const [selectedPrinter, setSelectedPrinter] = useState<Printer | null>(null);
+    const [clickCoords, setClickCoords] = useState<{ x: number; y: number } | null>(null);
+    const [newPrinter, setNewPrinter] = useState<{ name: string; ip: string; vendor: "hp" | "kyocera" | "canon" }>({
         name: "",
         ip: "",
-        vendor: "hp" as "hp" | "kyocera" | "canon"
+        vendor: "hp"
     });
 
     const mapContainerRef = useRef<HTMLDivElement>(null);
 
-    const loadPrinters = useCallback(async (isBackground = false) => {
-        if (!isBackground) setLoading(true);
+    const loadPrinters = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true);
         try {
-            const data: PrinterListResponse = await api.getPrinters();
+            const data = await api.getPrinters();
             setPrinters(data.printers);
             setTotalPrinters(data.total);
 
             setSelectedPrinter(prev => {
                 if (!prev) return null;
-                const updatedPrinter = data.printers.find(p => p.id === prev.id);
-                return updatedPrinter ? updatedPrinter : prev;
+                const updated = data.printers.find(p => p.id === prev.id);
+                return updated || prev;
             });
-        } catch (err) {
-            console.error("Ошибка при загрузке принтеров:", err);
+        } catch (error) {
+            console.error("Ошибка загрузки принтеров:", error);
         } finally {
-            if (!isBackground) setLoading(false);
+            if (!silent) setLoading(false);
         }
     }, []);
 
     const loadCurrentMap = useCallback(async () => {
         try {
             const data = await api.getCurrentMap();
-            setMapUrl(data.url);
+            if (data) setMapUrl(data.url);
+        } catch (error) {
+            console.error("Ошибка загрузки карты:", error);
+        }
+    }, []);
+
+    const loadCartridges = useCallback(async () => {
+        try {
+            const data = await api.getCartridges();
+            setCartridges(data);
         } catch (err) {
-            console.warn("Карта не найдена");
+            console.error("Ошибка загрузки картриджей:", err);
         }
     }, []);
 
     useEffect(() => {
         loadPrinters(false);
         loadCurrentMap();
+        loadCartridges();
 
         const FRONTEND_POLL_INTERVAL = 60000;
-
         const intervalId = setInterval(() => {
             loadPrinters(true);
+            loadCartridges();
         }, FRONTEND_POLL_INTERVAL);
 
         return () => clearInterval(intervalId);
-    }, [loadPrinters, loadCurrentMap]);
-
-    const handleRefresh = useCallback(async (id: string) => {
-        try {
-            const updated = await api.refreshPrinter(id);
-            setSelectedPrinter(updated);
-            loadPrinters(true);
-        } catch (err) {
-            alert("Ошибка опроса принтера по SNMP/сеть.");
-        }
-    }, [loadPrinters]);
-
-    const handleDelete = useCallback(async (id: string) => {
-        if (!confirm("Удалить принтер?")) return;
-        try {
-            await api.deletePrinter(id);
-            setSelectedPrinter(null);
-            loadPrinters(false);
-        } catch (err) {
-            alert("Ошибка при удалении принтера.");
-        }
-    }, [loadPrinters]);
-
-    const handleRename = useCallback(async (id: string, newName: string) => {
-        try {
-            const updated = await api.updatePrinter(id, { name: newName });
-            setSelectedPrinter(updated);
-            loadPrinters(true);
-        } catch (err) {
-            alert("Не удалось переименовать принтер.");
-        }
-    }, [loadPrinters]);
+    }, [loadPrinters, loadCurrentMap, loadCartridges]);
 
     const handleMapUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files || !e.target.files[0]) return;
+        const file = e.target.files?.[0];
+        if (!file) return;
         setLoading(true);
         try {
-            await api.uploadMap(e.target.files[0]);
-            loadCurrentMap();
-        } catch (err) {
-            alert("Ошибка загрузки карты.");
+            const data = await api.uploadMap(file);
+            setMapUrl(data.url);
+        } catch (error) {
+            alert("Ошибка при загрузке карты");
         } finally {
             setLoading(false);
         }
     };
 
-    // ИСПРАВЛЕННАЯ ФУНКЦИЯ
-    const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!mapContainerRef.current) return;
+    const handleMapClick = async (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!mapContainerRef.current || isLinking) return; // Блокируем создание точек, если мы связываем принтеры
         const rect = mapContainerRef.current.getBoundingClientRect();
-
-        // Вычисляем координаты клика в процентах
-        const x = Math.round(((e.clientX - rect.left) / rect.width) * 10000) / 100;
-        const y = Math.round(((e.clientY - rect.top) / rect.height) * 10000) / 100;
+        const x = Number(((e.clientX - rect.left) / rect.width * 100).toFixed(2));
+        const y = Number(((e.clientY - rect.top) / rect.height * 100).toFixed(2));
 
         if (mode === "move" && selectedPrinter) {
-            // Если включен режим перемещения, обновляем координаты текущего принтера
-            api.updatePrinter(selectedPrinter.id, { x, y }).then(updated => {
-                setSelectedPrinter(updated);
+            try {
+                await api.updatePrinter(selectedPrinter.id, { x, y });
                 setMode("view");
-                loadPrinters(true);
-            });
-        } else {
-            // Любой другой клик по карте открывает форму добавления нового принтера
+                await loadPrinters(true);
+            } catch (error) {
+                alert("Ошибка при перемещении принтера");
+            }
+        } else if (mode === "view" || mode === "add") {
             setMode("add");
             setClickCoords({ x, y });
-            setSelectedPrinter(null); // Закрываем карточку выбранного принтера, если она открыта
+            setSelectedPrinter(null);
+            setSelectedCartridgeId(null);
         }
     };
 
     const handleCreatePrinter = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!clickCoords) return;
+        setLoading(true);
         try {
-            await api.createPrinter({ ...newPrinter, x: clickCoords.x, y: clickCoords.y });
+            await api.createPrinter({
+                name: newPrinter.name,
+                ip: newPrinter.ip,
+                vendor: newPrinter.vendor,
+                x: clickCoords.x,
+                y: clickCoords.y
+            });
             setMode("view");
             setClickCoords(null);
             setNewPrinter({ name: "", ip: "", vendor: "hp" });
-            loadPrinters(false);
-        } catch (err) {
-            alert("Ошибка при создании принтера.");
+            await loadPrinters(true);
+        } catch (error: any) {
+            alert(error.message || "Ошибка при создании принтера");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleRefresh = async (id: string) => {
+        try {
+            await api.refreshPrinter(id);
+            await loadPrinters(true);
+        } catch (error) {
+            alert("Ошибка при опросе принтера");
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("Вы уверены, что хотите удалить этот принтер?")) return;
+        try {
+            await api.deletePrinter(id);
+            setSelectedPrinter(null);
+            await loadPrinters(true);
+        } catch (error) {
+            alert("Ошибка при удалении");
         }
     };
 
@@ -151,15 +163,30 @@ export function useOfficeMap() {
         setClickCoords(null);
     };
 
-    // === 1. ДОБАВЛЯЕМ ЭТУ ФУНКЦИЮ ===
-    const handleSelectPrinter = useCallback((printer: Printer | null) => {
-        setSelectedPrinter(printer);
-        // Если мы кликнули на принтер — принудительно гасим желтую метку и выходим из режима добавления
-        if (printer) {
-            setClickCoords(null);
-            setMode("view");
+    const handleRename = async (id: string, newName: string) => {
+        try {
+            await api.updatePrinter(id, { name: newName });
+            await loadPrinters(true);
+        } catch (error) {
+            alert("Ошибка при переименовании");
         }
-    }, []);
+    };
+
+    const handleSelectPrinter = (printer: Printer) => {
+        if (isLinking) {
+            // Режим связывания: клик по принтеру добавляет/удаляет его из массива
+            setLinkingPrinterIds(prev =>
+                prev.includes(printer.id)
+                    ? prev.filter(id => id !== printer.id)
+                    : [...prev, printer.id]
+            );
+            return;
+        }
+
+        setSelectedPrinter(printer);
+        setMode("view");
+        setClickCoords(null);
+    };
 
     return {
         printers,
@@ -171,10 +198,19 @@ export function useOfficeMap() {
         selectedPrinter,
         mode,
         mapContainerRef,
+        cartridges,
+        selectedCartridgeId,
+        hoveredCartridgeId,
+        isLinking,
+        linkingPrinterIds,
+        setHoveredCartridgeId,
+        setIsLinking,
+        setLinkingPrinterIds,
+        setSelectedCartridgeId,
+        loadCartridges,
         setNewPrinter,
         setClickCoords,
         setSelectedPrinter,
-        setMode,
         handleMapUpload,
         handleMapClick,
         handleCreatePrinter,

@@ -15,6 +15,16 @@ export default function OfficeMapPage() {
         selectedPrinter,
         mode,
         mapContainerRef,
+        cartridges,
+        selectedCartridgeId,
+        hoveredCartridgeId,
+        isLinking,
+        linkingPrinterIds,
+        setHoveredCartridgeId,
+        setIsLinking,
+        setLinkingPrinterIds,
+        setSelectedCartridgeId,
+        loadCartridges,
         setNewPrinter,
         setClickCoords,
         setSelectedPrinter,
@@ -47,6 +57,19 @@ export default function OfficeMapPage() {
                 onStartMove={handleStartMove}
                 onCancelMove={handleCancelMove}
                 onRename={handleRename}
+
+                printers={printers}
+                cartridges={cartridges}
+                selectedCartridgeId={selectedCartridgeId}
+                onSelectCartridge={setSelectedCartridgeId}
+                onRefreshCartridges={loadCartridges}
+
+                // Новые пропсы для hover и режима связывания
+                setHoveredCartridgeId={setHoveredCartridgeId}
+                isLinking={isLinking}
+                setIsLinking={setIsLinking}
+                linkingPrinterIds={linkingPrinterIds}
+                setLinkingPrinterIds={setLinkingPrinterIds}
             />
 
             <main className="flex-1 flex flex-col items-center justify-center p-8 bg-zinc-900 overflow-auto relative">
@@ -60,6 +83,12 @@ export default function OfficeMapPage() {
                     printers={printers}
                     onSelectPrinter={handleSelectPrinter}
                     clickCoords={clickCoords}
+
+                    cartridges={cartridges}
+                    selectedCartridgeId={selectedCartridgeId}
+                    hoveredCartridgeId={hoveredCartridgeId}
+                    isLinking={isLinking}
+                    linkingPrinterIds={linkingPrinterIds}
                 />
             </main>
         </div>

@@ -11,20 +11,17 @@ class CartridgesService:
     async def get_all(self) -> List[models.Cartridge]:
         return await self.repo.get_all()
 
-    async def get_for_printer(self, printer_model: str) -> List[models.Cartridge]:
-        return await self.repo.get_by_printer_model(printer_model)
-
     async def create(self, data: schemas.CartridgeCreate) -> models.Cartridge:
         return await self.repo.create(data)
 
     async def update(self, cartridge_id: UUID, data: schemas.CartridgeUpdate) -> models.Cartridge:
         cartridge = await self.repo.get_by_id(cartridge_id)
         if not cartridge:
-            raise CartridgesError(f"Картридж с ID {cartridge_id} не найден")
+            raise CartridgesError(f"Картридж не найден")
         return await self.repo.update(cartridge, data)
 
     async def delete(self, cartridge_id: UUID) -> None:
         cartridge = await self.repo.get_by_id(cartridge_id)
         if not cartridge:
-            raise CartridgesError(f"Картридж с ID {cartridge_id} не найден")
+            raise CartridgesError(f"Картридж не найден")
         await self.repo.delete(cartridge)
