@@ -1,5 +1,6 @@
 import {PrinterForm} from "./PrinterForm";
 import {PrinterDetails} from "./PrinterDetails";
+import { CartridgeManager } from "./CartridgeManager";
 import {Printer} from "@/service/api";
 
 interface SidebarProps {
@@ -87,15 +88,23 @@ export function Sidebar({
             )}
 
             {selectedPrinter && mode !== "move" && (
-                <PrinterDetails
-                    key={selectedPrinter.id}
-                    printer={selectedPrinter}
-                    onRefresh={onRefresh}
-                    onDelete={onDelete}
-                    onMove={onStartMove}
-                    onRename={onRename}
-                />
+                <>
+                    <PrinterDetails
+                        key={`details-${selectedPrinter.id}`}
+                        printer={selectedPrinter}
+                        onRefresh={onRefresh}
+                        onDelete={onDelete}
+                        onMove={onStartMove}
+                        onRename={onRename}
+                    />
+
+                    <CartridgeManager
+                        key={`cartridges-${selectedPrinter.id}`}
+                        printer={selectedPrinter}
+                    />
+                </>
             )}
+
         </aside>
     );
 }

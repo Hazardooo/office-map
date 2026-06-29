@@ -36,6 +36,31 @@ export interface PrinterUpdate {
     status?: string | null;
 }
 
+export interface Cartridge {
+    id: string;
+    name: string;
+    color: string;
+    quantity: number;
+    printer_model: string;
+    shop_link?: string | null;
+}
+
+export interface CartridgeCreate {
+    name: string;
+    color: string;
+    quantity: number;
+    printer_model: string;
+    shop_link?: string | null;
+}
+
+export interface CartridgeUpdate {
+    name?: string;
+    color?: string;
+    quantity?: number;
+    printer_model?: string;
+    shop_link?: string | null;
+}
+
 export const api = {
     async getPrinters(): Promise<PrinterListResponse> {
         const res = await fetch(`${BASE_URL}/printers/`);
@@ -104,5 +129,38 @@ export const api = {
         data.url = `${BASE_URL}${data.url}`;
 
         return data;
+    },
+    // === МЕТОДЫ ДЛЯ КАРТРИДЖЕВ ===
+    async getCartridgesByPrinter(printerModel: string): Promise<Cartridge[]> {
+        const res = await fetch(`${BASE_URL}/cartridges/by-printer/${encodeURIComponent(printerModel)}`);
+        if (!res.ok) throw new Error("Не удалось загрузить картриджи");
+        return res.json();
+    },
+
+    async createCartridge(data: CartridgeCreate): Promise<Cartridge> {
+        const res = await fetch(`${BASE_URL}/cartridges/`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data),
+        });
+        if (!res.ok) throw new Error("Ошибка при добавлении картриджа");
+        return res.json();
+    },
+
+    async updateCartridge(id: string, data: CartridgeUpdate): Promise<Cartridge> {
+        const res = await fetch(`${BASE_URL}/cartridges/${id}`, {
+            method: "PATCH",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data),
+        });
+        if (!res.ok) throw new Error("Ошибка при обновлении картриджа");
+        return res.json();
+    },
+
+    async deleteCartridge(id: string): Promise<void> {
+        const res = await fetch(`${BASE_URL}/cartridges/${id}`, {
+            method: "DELETE",
+        });
+        if (!res.ok) throw new Error("Ошибка при удалении картриджа");
     }
 };

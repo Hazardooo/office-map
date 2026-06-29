@@ -4,6 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 from src.error_handlers import register_error_handlers
 from src.printers.router import router as printers_router
 from src.maps.router import router as maps_router
+from src.cartridges.router import router as cartridges_router
 from src.scheduler import PrinterScheduler
 from src.settings import settings
 import logging
@@ -46,4 +47,5 @@ app.add_middleware(
 
 app.include_router(printers_router)
 app.include_router(maps_router)
+app.include_router(cartridges_router)
 register_error_handlers(app)

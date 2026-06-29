@@ -6,6 +6,8 @@ from sqlalchemy import pool
 from alembic import context
 
 from src.database.postgres import Base
+from src.printers.models import Printer
+from src.cartridges.models import Cartridge
 from src.settings import settings
 
 # this is the Alembic Config object, which provides

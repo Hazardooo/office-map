@@ -1,6 +1,6 @@
-from .kyocera import KyoceraParser
-from .canon import CanonParser
-from .hp import HPParser
+from src.printers.parsers.kyocera import KyoceraParser
+from src.printers.parsers.canon import CanonParser
+from src.printers.parsers.hp import HPParser
 
 PARSERS = {
     "kyocera": KyoceraParser,
