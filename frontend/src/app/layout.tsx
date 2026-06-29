@@ -13,8 +13,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Office Map — Printer Monitor",
-  description: "Interactive office floor plan with printer monitoring",
+    title: "Office Map — Printer Monitor",
+    description: "Interactive office floor plan with printer monitoring",
+    icons: {
+        icon: [
+            { url: '/icon.svg', type: 'image/svg+xml' },
+        ],
+    },
 };
 
 export default function RootLayout({

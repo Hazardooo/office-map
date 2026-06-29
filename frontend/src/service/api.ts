@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 export interface Printer {
     id: string;
@@ -120,7 +120,6 @@ export const api = {
         if (!res.ok) throw new Error("Failed to fetch map");
 
         const data = await res.json();
-        // Извлекаем "http://localhost:8000" из BASE_URL и приклеиваем к пути
         const backendOrigin = new URL(BASE_URL).origin;
         data.url = data.url.startsWith('http') ? data.url : `${backendOrigin}${data.url}`;
 
