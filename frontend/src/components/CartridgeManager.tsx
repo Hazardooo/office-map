@@ -85,7 +85,7 @@ export function CartridgeManager(props: CartridgeManagerProps) {
     };
 
     return (
-        <div className="card-container border-t-4 border-t-brand mt-auto">
+        <div className="card-container border-t-4 border-t-brand">
             <div className="flex justify-between items-center mb-4">
                 <h4 className="font-bold text-text-main">База картриджей</h4>
                 {!isLinking && (
