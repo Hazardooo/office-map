@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     APP_NAME: str = "FastAPI App"
     DRAGONFLY_URL: str = "redis://localhost:6379/0"
 
+    PRINTER_POLLING_INTERVAL: int = 5
+    MAX_CONCURRENT_TASKS: int = 5
+    SELENIUM_POOL_SIZE: int = 4     
+
     @computed_field
     @property
     def POSTGRES_URL(self) -> str:
