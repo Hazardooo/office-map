@@ -64,9 +64,9 @@ declare global {
 // Функция динамического получения URL
 export const getBaseUrl = () => {
     if (typeof window !== "undefined" && window.APP_CONFIG?.apiUrl) {
-        return window.APP_CONFIG.apiUrl;
+        return window.APP_CONFIG.apiUrl+"/api";
     }
-    return "http://localhost:8000/api"; // Фоллбэк
+    return "http://localhost:8000/api";
 };
 
 export const api = {
