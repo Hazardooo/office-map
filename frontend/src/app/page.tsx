@@ -15,9 +15,19 @@ export default function OfficeMapPage() {
         selectedPrinter,
         mode,
         mapContainerRef,
+        cartridges,
+        selectedCartridgeId,
+        hoveredCartridgeId,
+        isLinking,
+        linkingPrinterIds,
+        setHoveredCartridgeId,
+        setIsLinking,
+        setLinkingPrinterIds,
+        setSelectedCartridgeId,
+        fetchCartridges,
         setNewPrinter,
         setClickCoords,
-        setSelectedPrinter,
+        setSelectedPrinterId,
         handleMapUpload,
         handleMapClick,
         handleCreatePrinter,
@@ -26,10 +36,11 @@ export default function OfficeMapPage() {
         handleStartMove,
         handleCancelMove,
         handleRename,
+        handleSelectPrinter
     } = useOfficeMap();
 
     return (
-        <div className="flex h-screen bg-zinc-900 text-zinc-100 font-sans">
+        <div className="flex h-screen bg-background text-foreground font-sans">
             <Sidebar
                 loading={loading}
                 totalPrinters={totalPrinters}
@@ -46,9 +57,21 @@ export default function OfficeMapPage() {
                 onStartMove={handleStartMove}
                 onCancelMove={handleCancelMove}
                 onRename={handleRename}
+
+                printers={printers}
+                cartridges={cartridges}
+                selectedCartridgeId={selectedCartridgeId}
+                onSelectCartridge={setSelectedCartridgeId}
+                onRefreshCartridges={fetchCartridges}
+
+                setHoveredCartridgeId={setHoveredCartridgeId}
+                isLinking={isLinking}
+                setIsLinking={setIsLinking}
+                linkingPrinterIds={linkingPrinterIds}
+                setLinkingPrinterIds={setLinkingPrinterIds}
             />
 
-            <main className="flex-1 flex flex-col items-center justify-center p-8 bg-zinc-900 overflow-auto relative">
+            <main className="flex-1 flex flex-col items-center justify-center p-8 bg-background overflow-auto relative">
                 <MapCanvas
                     mapUrl={mapUrl}
                     mode={mode}
@@ -57,8 +80,14 @@ export default function OfficeMapPage() {
                     onMapClick={handleMapClick}
                     onMapUpload={handleMapUpload}
                     printers={printers}
-                    onSelectPrinter={setSelectedPrinter}
+                    onSelectPrinter={handleSelectPrinter}
                     clickCoords={clickCoords}
+
+                    cartridges={cartridges}
+                    selectedCartridgeId={selectedCartridgeId}
+                    hoveredCartridgeId={hoveredCartridgeId}
+                    isLinking={isLinking}
+                    linkingPrinterIds={linkingPrinterIds}
                 />
             </main>
         </div>

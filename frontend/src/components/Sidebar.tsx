@@ -1,6 +1,7 @@
 import {PrinterForm} from "./PrinterForm";
 import {PrinterDetails} from "./PrinterDetails";
-import {Printer} from "@/service/api";
+import {CartridgeManager} from "./CartridgeManager";
+import {Printer, Cartridge} from "@/service/api";
 
 interface SidebarProps {
     loading: boolean;
@@ -18,6 +19,19 @@ interface SidebarProps {
     onStartMove: () => void;
     onCancelMove: () => void;
     onRename: (id: string, newName: string) => void;
+
+    printers: Printer[];
+    cartridges: Cartridge[];
+    selectedCartridgeId: string | null;
+    onSelectCartridge: (id: string | null) => void;
+    onRefreshCartridges: () => void;
+
+    // НОВЫЕ ПРОПСЫ, ИЗ-ЗА КОТОРЫХ БЫЛА ОШИБКА
+    setHoveredCartridgeId: (id: string | null) => void;
+    isLinking: boolean;
+    setIsLinking: (linking: boolean) => void;
+    linkingPrinterIds: string[];
+    setLinkingPrinterIds: (ids: string[]) => void;
 }
 
 export function Sidebar({
@@ -36,6 +50,15 @@ export function Sidebar({
                             onStartMove,
                             onCancelMove,
                             onRename,
+                            cartridges,
+                            selectedCartridgeId,
+                            onSelectCartridge,
+                            onRefreshCartridges,
+                            setHoveredCartridgeId,
+                            isLinking,
+                            setIsLinking,
+                            linkingPrinterIds,
+                            setLinkingPrinterIds
                         }: SidebarProps) {
     return (
         <aside
@@ -46,7 +69,6 @@ export function Sidebar({
                 </div>
             </div>
 
-            {/* Индикатор режима */}
             {mode === "move" && (
                 <div className="p-3 bg-amber-950/50 border border-amber-600/30 rounded-lg">
                     <p className="text-xs text-amber-400 font-medium">Режим перемещения</p>
@@ -73,7 +95,7 @@ export function Sidebar({
                 {loading && <p className="text-xs text-amber-400 mt-2">Загрузка файла на сервер...</p>}
             </div>
 
-            {clickCoords && mode === "add" && (
+            {clickCoords && mode === "add" && !isLinking && (
                 <PrinterForm
                     clickCoords={clickCoords}
                     newPrinter={newPrinter}
@@ -86,8 +108,10 @@ export function Sidebar({
                 />
             )}
 
-            {selectedPrinter && mode !== "move" && (
+            {/* Карточка деталей */}
+            {selectedPrinter && mode !== "move" && !isLinking && (
                 <PrinterDetails
+                    key={`details-${selectedPrinter.id}`}
                     printer={selectedPrinter}
                     onRefresh={onRefresh}
                     onDelete={onDelete}
@@ -95,6 +119,20 @@ export function Sidebar({
                     onRename={onRename}
                 />
             )}
+
+            <CartridgeManager
+                cartridges={cartridges}
+                selectedCartridgeId={selectedCartridgeId}
+                onSelectCartridge={onSelectCartridge}
+                onRefresh={onRefreshCartridges}
+
+                // Прокидываем пропсы наведения и линковки
+                setHoveredCartridgeId={setHoveredCartridgeId}
+                isLinking={isLinking}
+                setIsLinking={setIsLinking}
+                linkingPrinterIds={linkingPrinterIds}
+                setLinkingPrinterIds={setLinkingPrinterIds}
+            />
         </aside>
     );
 }

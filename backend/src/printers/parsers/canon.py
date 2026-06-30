@@ -1,57 +1,51 @@
+# src/printers/parsers/canon.py
+import time
+import re
+from bs4 import BeautifulSoup
+from typing import Dict, Any
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from bs4 import BeautifulSoup
-import time
-import re
-from typing import Dict, Any
+from selenium.common.exceptions import TimeoutException
 
 from src.printers.parsers.base import BasePrinterParser
 from src.printers.parsers.pool import get_pool
+from src.printers.parsers.exceptions import (
+    ParserAuthError, ParserDOMError, ParserTimeoutError, ParserError
+)
 
 class CanonParser(BasePrinterParser):
-    """Парсер для принтеров Canon с безопасным управлением пулом браузеров."""
-
     def _login_guest(self, driver) -> bool:
-        """Проходит форму авторизации."""
         try:
-            # Ждем появления радиокнопки
             WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((By.ID, "radio2"))
             )
-
-            # Выбираем "Режим конечного пользователя" через JS (надежнее клика)
             driver.execute_script("document.getElementById('radio2').checked = true;")
-
-            # Вызываем нативную функцию входа, не привязываясь к языку слова "Вход"
             driver.execute_script("window.login();")
-
-            # Ждем редиректа
             WebDriverWait(driver, 10).until(
                 lambda d: "login" not in d.current_url.lower()
             )
-            time.sleep(1.0) # Небольшая пауза для отрисовки DOM
+            time.sleep(1.0)
             return True
         except Exception:
             return False
 
     def get_status(self) -> Dict[str, Any]:
         pool = get_pool()
-        # Берем ТОЛЬКО ОДИН драйвер для всего процесса
         driver = pool.acquire(timeout=25)
-        if not driver:
-            return {"error": "Нет доступных драйверов в пуле"}
 
         try:
             driver.set_page_load_timeout(15)
             driver.set_script_timeout(15)
 
-            # --- ШАГ 1: Идем на порт 8000 за моделью и хостнеймом ---
-            driver.get(f"http://{self.ip}:8000/rps/portal.cgi")
+            try:
+                driver.get(f"http://{self.ip}:8000/rps/portal.cgi")
+            except TimeoutException:
+                raise ParserTimeoutError(f"Таймаут подключения к порталу Canon ({self.ip}:8000)")
 
             if "login" in driver.current_url.lower():
                 if not self._login_guest(driver):
-                    return {"error": "Ошибка входа на портал (порт 8000)"}
+                    raise ParserAuthError("Ошибка авторизации на портале Canon (порт 8000)")
 
             soup = BeautifulSoup(driver.page_source, "html.parser")
             model = "Unknown"
@@ -70,18 +64,18 @@ class CanonParser(BasePrinterParser):
                         elif "Наименование изделия" in label:
                             model = value
 
-            # --- ШАГ 2: В ЭТОМ ЖЕ БРАУЗЕРЕ идем на корень (порт 80) за тонером ---
-            driver.get(f"http://{self.ip}")
+            try:
+                driver.get(f"http://{self.ip}")
+            except TimeoutException:
+                raise ParserTimeoutError(f"Таймаут подключения к корневой странице Canon ({self.ip})")
 
-            # На всякий случай проверяем, не требует ли корень тоже логина
             if "login" in driver.current_url.lower():
                 if not self._login_guest(driver):
-                    return {"error": "Ошибка входа на корневую страницу"}
+                    raise ParserAuthError("Ошибка авторизации на корневой странице Canon")
 
             soup_toner = BeautifulSoup(driver.page_source, "html.parser")
             toner_data = {}
 
-            # Твои точные селекторы из старого кода
             toner_module = soup_toner.find("div", id="tonerInfomationModule")
             if toner_module:
                 table = toner_module.find("table", class_="ItemListComponent")
@@ -98,7 +92,7 @@ class CanonParser(BasePrinterParser):
                                     toner_data[color] = f"{match.group(1)}%"
 
             if not toner_data:
-                return {"error": "Блок тонера не найден на корневой странице"}
+                raise ParserDOMError("Блок тонера не найден. Возможно, изменилась прошивка принтера.")
 
             return {
                 "model": model,
@@ -106,8 +100,9 @@ class CanonParser(BasePrinterParser):
                 "toner": toner_data
             }
 
+        except (ParserAuthError, ParserDOMError, ParserTimeoutError) as e:
+            raise e
         except Exception as e:
-            return {"error": f"Ошибка парсинга Canon: {str(e)}"}
+            raise ParserError(f"Неожиданная ошибка парсинга Canon: {str(e)}")
         finally:
-            # Обязательно отдаем драйвер обратно
             pool.release(driver)

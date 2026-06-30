@@ -11,12 +11,11 @@ from selenium.common.exceptions import TimeoutException
 
 from src.printers.parsers.base import BasePrinterParser
 from src.printers.parsers.pool import get_pool
+from src.printers.parsers.exceptions import ParserDOMError, ParserTimeoutError, ParserError
 
 logger = logging.getLogger(__name__)
 
 class KyoceraParser(BasePrinterParser):
-    """Парсер Kyocera (HTTP), извлекающий данные из вложенных фреймов wlmframe -> toner."""
-
     def __init__(self, ip: str):
         super().__init__(ip)
         self.base_url = f"http://{ip}"
@@ -27,10 +26,7 @@ class KyoceraParser(BasePrinterParser):
 
     def get_status(self) -> Dict[str, Any]:
         pool = get_pool()
-        try:
-            driver = pool.acquire(timeout=25)
-        except Exception:
-            return {"error": "Нет доступных слотов в пуле браузеров"}
+        driver = pool.acquire(timeout=25)
 
         try:
             driver.set_page_load_timeout(15)
@@ -47,24 +43,21 @@ class KyoceraParser(BasePrinterParser):
                 try: driver.execute_script("window.stop();")
                 except Exception: pass
             except Exception as http_err:
-                return {"error": f"Принтер недоступен: {str(http_err)}"}
+                raise ParserTimeoutError(f"Kyocera недоступна: {str(http_err)}")
 
-            # Шаг 1: Заходим в главный фрейм
             try:
                 WebDriverWait(driver, 10).until(
                     EC.frame_to_be_available_and_switch_to_it((By.NAME, "wlmframe"))
                 )
             except TimeoutException:
-                return {"error": "Главный фрейм 'wlmframe' не найден"}
+                raise ParserDOMError("Главный фрейм 'wlmframe' не найден (возможно, принтер требует авторизации или имеет другую верстку)")
 
-            # Ждем рендеринг JS
             time.sleep(4.0)
 
             soup_main = BeautifulSoup(driver.page_source, "html.parser")
             model = "Kyocera ECOSYS"
             hostname = "Unknown"
 
-            # Парсинг метаданных (согласно дампу, они лежат в <td id="info">)
             infos = soup_main.find_all("td", id="info")
             for info in infos:
                 text = info.get_text(strip=True)
@@ -73,15 +66,13 @@ class KyoceraParser(BasePrinterParser):
                 elif "Имя хоста :" in text:
                     hostname = text.split("Имя хоста :")[-1].strip()
 
-            # Шаг 2: Заходим во вложенный фрейм 'toner'
             try:
                 WebDriverWait(driver, 5).until(
                     EC.frame_to_be_available_and_switch_to_it((By.ID, "toner"))
                 )
             except TimeoutException:
-                return {"error": "Не удалось найти вложенный фрейм 'toner'"}
+                raise ParserDOMError("Не удалось найти вложенный фрейм 'toner'")
 
-            # Парсинг тонера (согласно дампу, таблица id="contentrow")
             soup_toner = BeautifulSoup(driver.page_source, "html.parser")
             toner_data = {}
 
@@ -105,7 +96,7 @@ class KyoceraParser(BasePrinterParser):
                                 break
 
             if not toner_data:
-                return {"error": "Не удалось извлечь данные тонера из таблицы фрейма"}
+                raise ParserDOMError("Не удалось извлечь данные тонера из таблицы фрейма")
 
             return {
                 "model": model,
@@ -113,12 +104,11 @@ class KyoceraParser(BasePrinterParser):
                 "toner": toner_data
             }
 
+        except (ParserDOMError, ParserTimeoutError) as e:
+            raise e
         except Exception as e:
-            logger.error(f"Ошибка парсинга Kyocera ({self.ip}): {str(e)}")
-            return {"error": f"Ошибка: {str(e)}"}
+            raise ParserError(f"Критическая ошибка парсинга Kyocera: {str(e)}")
         finally:
-            try:
-                driver.switch_to.default_content()
-            except Exception:
-                pass
+            try: driver.switch_to.default_content()
+            except Exception: pass
             pool.release(driver)

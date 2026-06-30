@@ -6,7 +6,6 @@ class BasePrinterParser:
 
     def __init__(self, ip: str):
         self.ip = ip
-        # Большинство принтеров используют HTTP, если Kyocera строго HTTPS — можно переопределить в классе
         self.base_url = f"http://{ip}"
 
     def get_status(self) -> Dict[str, Any]:

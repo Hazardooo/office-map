@@ -55,27 +55,34 @@ export function PrinterDetails({printer, onRefresh, onDelete, onMove, onRename}:
                     </h3>
                 )}
                 <span
-                    className={`... ${printer.is_online ? 'bg-green-950 text-green-400' : 'bg-red-950 text-red-400'}`}>
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium ${printer.is_online ? 'bg-green-950 text-green-400' : 'bg-red-950 text-red-400'}`}>
                         {printer.is_online ? 'online' : 'offline'}
                 </span>
             </div>
-
             <div className="space-y-1 text-xs text-zinc-300 font-mono mb-4">
-                <p><span className="text-zinc-500">IP:</span> {printer.ip}</p>
+                <p>
+                    <span className="text-zinc-500">IP:</span>{' '}
+                    <a
+                        href={`http://${printer.ip}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-amber-500 hover:text-amber-400 underline decoration-amber-500/30 hover:decoration-amber-400 transition-colors"
+                    >
+                        {printer.ip}
+                    </a>
+                </p>
                 <p><span className="text-zinc-500">Бренд:</span> {printer.vendor.toUpperCase()}</p>
                 {printer.model && <p><span className="text-zinc-500">Модель:</span> {printer.model}</p>}
-                {printer.serial_number && <p><span className="text-zinc-500">S/N:</span> {printer.serial_number}</p>}
                 <p><span className="text-zinc-500">Позиция:</span> X:{printer.x}% Y:{printer.y}%</p>
             </div>
 
             <div className="space-y-2 border-t border-zinc-800 pt-3">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1">Расходные
-                    материалы</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-1">Уровень тонера</h4>
                 <div>
                     <div className="flex justify-between text-xs mb-1">
                         <span>Черный (K)</span><span>{printer.toner_black}%</span></div>
                     <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden">
-                        <div className="bg-zinc-400 h-full" style={{width: `${printer.toner_black}%`}}></div>
+                        <div className="bg-zinc-400 h-full transition-all duration-500" style={{width: `${printer.toner_black}%`}}></div>
                     </div>
                 </div>
 
@@ -84,45 +91,29 @@ export function PrinterDetails({printer, onRefresh, onDelete, onMove, onRename}:
                         <div>
                             <div className="text-[10px] text-cyan-400">C: {printer.toner_cyan}%</div>
                             <div className="w-full bg-zinc-800 h-1.5 rounded-full">
-                                <div className="bg-cyan-400 h-full" style={{width: `${printer.toner_cyan}%`}}></div>
+                                <div className="bg-cyan-400 h-full transition-all duration-500" style={{width: `${printer.toner_cyan}%`}}></div>
                             </div>
                         </div>
                         <div>
                             <div className="text-[10px] text-fuchsia-400">M: {printer.toner_magenta}%</div>
                             <div className="w-full bg-zinc-800 h-1.5 rounded-full">
-                                <div className="bg-fuchsia-400 h-full"
-                                     style={{width: `${printer.toner_magenta}%`}}></div>
+                                <div className="bg-fuchsia-400 h-full transition-all duration-500" style={{width: `${printer.toner_magenta}%`}}></div>
                             </div>
                         </div>
                         <div>
                             <div className="text-[10px] text-yellow-400">Y: {printer.toner_yellow}%</div>
                             <div className="w-full bg-zinc-800 h-1.5 rounded-full">
-                                <div className="bg-yellow-400 h-full" style={{width: `${printer.toner_yellow}%`}}></div>
+                                <div className="bg-yellow-400 h-full transition-all duration-500" style={{width: `${printer.toner_yellow}%`}}></div>
                             </div>
                         </div>
                     </div>
                 )}
             </div>
 
-            <div className="grid grid-cols-1 gap-2 mt-4">
-                <button
-                    onClick={() => onRefresh(printer.id)}
-                    className="btn-primary text-xs"
-                >
-                    Обновить
-                </button>
-                <button
-                    onClick={onMove}
-                    className="btn-secondary text-xs"
-                >
-                    Редактировать
-                </button>
-                <button
-                    onClick={() => onDelete(printer.id)}
-                    className="btn-danger text-xs"
-                >
-                    Удалить
-                </button>
+            <div className="grid grid-cols-3 gap-2 mt-4 pt-2 border-t border-zinc-800">
+                <button onClick={() => onRefresh(printer.id)} className="btn-primary text-xs">Опросить</button>
+                <button onClick={onMove} className="btn-secondary text-xs bg-zinc-800">Двигать</button>
+                <button onClick={() => onDelete(printer.id)} className="btn-danger text-xs">Удалить</button>
             </div>
         </div>
     );

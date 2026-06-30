@@ -1,202 +1,190 @@
-"use client";
+// src/hooks/useOfficeMap.ts
+import { useState, useEffect, useCallback, useRef } from "react";
+import { api, Printer, Cartridge } from "@/service/api";
 
-import {useState, useEffect, useRef, useCallback} from "react";
-import {api, Printer, BASE_URL, PrinterListResponse} from "@/service/api";
-
-type Mode = "view" | "add" | "move";
-
-export function useOfficeMap() {
+// --- МОДУЛЬ 1: Управление принтерами ---
+function usePrintersData() {
     const [printers, setPrinters] = useState<Printer[]>([]);
     const [totalPrinters, setTotalPrinters] = useState(0);
-    const [mapUrl, setMapUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [clickCoords, setClickCoords] = useState<{ x: number; y: number } | null>(null);
-    const [selectedPrinter, setSelectedPrinter] = useState<Printer | null>(null);
-    const [mode, setMode] = useState<Mode>("view");
 
-    const [newPrinter, setNewPrinter] = useState({
-        name: "",
-        ip: "",
-        vendor: "hp" as "hp" | "kyocera" | "canon"
-    });
+    const fetchPrinters = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true);
+        try {
+            const data = await api.getPrinters();
+            setPrinters(data.printers);
+            setTotalPrinters(data.total);
+        } catch (error) {
+            console.error("Ошибка загрузки принтеров:", error);
+        } finally {
+            if (!silent) setLoading(false);
+        }
+    }, []);
+
+    return { printers, totalPrinters, loading, fetchPrinters, setLoading };
+}
+
+// --- МОДУЛЬ 2: Управление картриджами ---
+function useCartridgesData() {
+    const [cartridges, setCartridges] = useState<Cartridge[]>([]);
+
+    const fetchCartridges = useCallback(async () => {
+        try {
+            const data = await api.getCartridges();
+            setCartridges(data);
+        } catch (err) {
+            console.error("Ошибка загрузки картриджей:", err);
+        }
+    }, []);
+
+    return { cartridges, fetchCartridges };
+}
+
+// --- МОДУЛЬ 3: Управление UI стейтом (карта, клики, выделения) ---
+function useMapInteraction() {
+    const [mapUrl, setMapUrl] = useState<string | null>(null);
+    const [mode, setMode] = useState<"view" | "add" | "move">("view");
+    const [selectedPrinterId, setSelectedPrinterId] = useState<string | null>(null);
+    const [clickCoords, setClickCoords] = useState<{ x: number; y: number } | null>(null);
+
+    const [selectedCartridgeId, setSelectedCartridgeId] = useState<string | null>(null);
+    const [hoveredCartridgeId, setHoveredCartridgeId] = useState<string | null>(null);
+
+    const [isLinking, setIsLinking] = useState(false);
+    const [linkingPrinterIds, setLinkingPrinterIds] = useState<string[]>([]);
 
     const mapContainerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        loadPrinters();
-        loadCurrentMap();
-    }, []);
-
-    const loadPrinters = async () => {
-        try {
-            const data: PrinterListResponse = await api.getPrinters();
-            setPrinters(data.printers);
-            setTotalPrinters(data.total);
-        } catch (err) {
-            console.error("Ошибка загрузки списка принтеров:", err);
-        }
-    };
-
-    const loadCurrentMap = async () => {
+    const loadCurrentMap = useCallback(async () => {
         try {
             const data = await api.getCurrentMap();
-            setMapUrl(`${BASE_URL}${data.url}`);
-        } catch (err) {
-            console.log("Карта на бэкенде пока не установлена.");
-            setMapUrl(null);
+            if (data) setMapUrl(data.url);
+        } catch (error) {
+            console.error("Ошибка загрузки карты:", error);
         }
+    }, []);
+
+    return {
+        mapUrl, setMapUrl, mode, setMode,
+        selectedPrinterId, setSelectedPrinterId,
+        clickCoords, setClickCoords,
+        selectedCartridgeId, setSelectedCartridgeId,
+        hoveredCartridgeId, setHoveredCartridgeId,
+        isLinking, setIsLinking,
+        linkingPrinterIds, setLinkingPrinterIds,
+        mapContainerRef, loadCurrentMap
     };
+}
 
-    const getCoordsFromEvent = (e: React.MouseEvent<HTMLDivElement>) => {
-        if (!mapContainerRef.current) return null;
-        const rect = mapContainerRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        return {x: Math.round(x * 100) / 100, y: Math.round(y * 100) / 100};
-    };
+// --- ГЛАВНЫЙ ОРКЕСТРАТОР ---
+export function useOfficeMap() {
+    const printerHook = usePrintersData();
+    const cartridgeHook = useCartridgesData();
+    const mapHook = useMapInteraction();
 
-    const handleMapClick = (e: React.MouseEvent<HTMLDivElement>) => {
-        const target = e.target as HTMLElement;
+    const [newPrinter, setNewPrinter] = useState<{ name: string; ip: string; vendor: "hp" | "kyocera" | "canon" }>({
+        name: "", ip: "", vendor: "hp"
+    });
 
-        // Клик на маркер — выбор принтера, закрываем форму создания
-        const marker = target.closest(".printer-marker") as HTMLElement | null;
-        if (marker) {
-            const printerId = marker.dataset.printerId;
-            const printer = printers.find(p => p.id === printerId);
-            if (printer) {
-                if (mode === "move") {
-                    setSelectedPrinter(printer);
-                } else {
-                    setSelectedPrinter(printer);
-                    setClickCoords(null);
-                    setMode("view");
-                }
+    // Инициализация и поллинг
+    useEffect(() => {
+        printerHook.fetchPrinters(false);
+        mapHook.loadCurrentMap();
+        cartridgeHook.fetchCartridges();
+
+        // Читаем интервал из глобального конфига (если нет, ставим 60 сек по умолчанию)
+        const pollingInterval = typeof window !== "undefined" && window.APP_CONFIG?.pollingInterval
+            ? window.APP_CONFIG.pollingInterval
+            : 60000;
+
+        const intervalId = setInterval(() => {
+            printerHook.fetchPrinters(true);
+            cartridgeHook.fetchCartridges();
+        }, pollingInterval);
+
+        return () => clearInterval(intervalId);
+    }, []);
+
+    const selectedPrinter = printerHook.printers.find(p => p.id === mapHook.selectedPrinterId) || null;
+
+    // --- ОБРАБОТЧИКИ СОБЫТИЙ ---
+    const handleMapClick = async (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!mapHook.mapContainerRef.current || mapHook.isLinking) return;
+        const rect = mapHook.mapContainerRef.current.getBoundingClientRect();
+        const x = Number(((e.clientX - rect.left) / rect.width * 100).toFixed(2));
+        const y = Number(((e.clientY - rect.top) / rect.height * 100).toFixed(2));
+
+        if (mapHook.mode === "move" && selectedPrinter) {
+            try {
+                await api.updatePrinter(selectedPrinter.id, { x, y });
+                mapHook.setMode("view");
+                await printerHook.fetchPrinters(true);
+            } catch (error) {
+                alert("Ошибка при перемещении принтера");
             }
-            return;
-        }
-
-        // Клик на пустое место
-        const coords = getCoordsFromEvent(e);
-        if (!coords) return;
-
-        if (mode === "move" && selectedPrinter) {
-            handleMovePrinter(selectedPrinter.id, coords.x, coords.y);
-            return;
-        }
-
-        setClickCoords(coords);
-        setSelectedPrinter(null);
-        setMode("add");
-    };
-
-    const handleMovePrinter = useCallback(async (id: string, x: number, y: number) => {
-        try {
-            await api.updatePrinter(id, {x, y});
-            setMode("view");
-            setSelectedPrinter(null);
-            loadPrinters();
-        } catch (err) {
-            alert("Не удалось переместить принтер.");
-        }
-    }, []);
-
-    const handleStartMove = useCallback(() => {
-        if (!selectedPrinter) return;
-        setMode("move");
-    }, [selectedPrinter]);
-
-    const handleCancelMove = useCallback(() => {
-        setMode("view");
-        setSelectedPrinter(null);
-        setClickCoords(null);
-    }, []);
-
-    const handleMapUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files?.[0]) return;
-        setLoading(true);
-        try {
-            const response = await api.uploadMap(e.target.files[0]);
-            setMapUrl(`${BASE_URL}${response.url}`);
-            setClickCoords(null);
-            alert("Карта успешно загружена и отображена!");
-        } catch (err) {
-            alert("Не удалось загрузить файл. Убедитесь, что это валидный .svg");
-        } finally {
-            setLoading(false);
+        } else if (mapHook.mode === "view" || mapHook.mode === "add") {
+            mapHook.setMode("add");
+            mapHook.setClickCoords({ x, y });
+            mapHook.setSelectedPrinterId(null);
+            mapHook.setSelectedCartridgeId(null);
         }
     };
 
     const handleCreatePrinter = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!clickCoords) return;
-
+        if (!mapHook.clickCoords) return;
+        printerHook.setLoading(true);
         try {
             await api.createPrinter({
-                ...newPrinter,
-                x: clickCoords.x,
-                y: clickCoords.y
+                name: newPrinter.name, ip: newPrinter.ip, vendor: newPrinter.vendor,
+                x: mapHook.clickCoords.x, y: mapHook.clickCoords.y
             });
-            setClickCoords(null);
-            setNewPrinter({name: "", ip: "", vendor: "hp"});
-            setMode("view");
-            loadPrinters();
-        } catch (err) {
-            alert("Не удалось добавить принтер. Проверьте правильность IP адреса.");
+            mapHook.setMode("view");
+            mapHook.setClickCoords(null);
+            setNewPrinter({ name: "", ip: "", vendor: "hp" });
+            await printerHook.fetchPrinters(true);
+        } catch (error: any) {
+            alert(error.message || "Ошибка при создании принтера");
+        } finally {
+            printerHook.setLoading(false);
         }
     };
 
-    const handleRefresh = useCallback(async (id: string) => {
-        try {
-            const updated = await api.refreshPrinter(id);
-            setSelectedPrinter(updated);
-            loadPrinters();
-        } catch (err) {
-            alert("Ошибка опроса принтера по SNMP/сеть.");
+    const handleSelectPrinter = (printer: Printer) => {
+        if (mapHook.isLinking) {
+            mapHook.setLinkingPrinterIds(prev =>
+                prev.includes(printer.id) ? prev.filter(id => id !== printer.id) : [...prev, printer.id]
+            );
+            return;
         }
-    }, []);
+        mapHook.setSelectedPrinterId(printer.id);
+        mapHook.setMode("view");
+        mapHook.setClickCoords(null);
+    };
 
-    const handleDelete = useCallback(async (id: string) => {
-        if (!confirm("Удалить принтер?")) return;
-        try {
-            await api.deletePrinter(id);
-            setSelectedPrinter(null);
-            loadPrinters();
-        } catch (err) {
-            alert("Ошибка при удалении принтера.");
-        }
-    }, []);
-
-    const handleRename = useCallback(async (id: string, newName: string) => {
-        try {
-            const updated = await api.updatePrinter(id, {name: newName});
-            setSelectedPrinter(updated);
-            loadPrinters();
-        } catch (err) {
-            alert("Не удалось переименовать принтер.");
-        }
-    }, []);
+    // Обертки для API вызовов с авто-обновлением
+    const handleRefresh = async (id: string) => { await api.refreshPrinter(id); await printerHook.fetchPrinters(true); };
+    const handleDelete = async (id: string) => { await api.deletePrinter(id); mapHook.setSelectedPrinterId(null); await printerHook.fetchPrinters(true); };
+    const handleRename = async (id: string, newName: string) => { await api.updatePrinter(id, { name: newName }); await printerHook.fetchPrinters(true); };
 
     return {
-        printers,
-        totalPrinters,
-        mapUrl,
-        loading,
-        clickCoords,
-        newPrinter,
+        ...printerHook,
+        ...cartridgeHook,
+        ...mapHook,
+        newPrinter, setNewPrinter,
         selectedPrinter,
-        mode,
-        mapContainerRef,
-        setNewPrinter,
-        setClickCoords,
-        setSelectedPrinter,
-        setMode,
-        handleMapUpload,
-        handleMapClick,
-        handleCreatePrinter,
-        handleRefresh,
-        handleDelete,
-        handleStartMove,
-        handleCancelMove,
-        handleRename,
+        handleMapClick, handleCreatePrinter, handleSelectPrinter,
+        handleRefresh, handleDelete, handleRename,
+        handleStartMove: () => mapHook.setMode("move"),
+        handleCancelMove: () => { mapHook.setMode("view"); mapHook.setClickCoords(null); },
+        handleMapUpload: async (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (file) {
+                printerHook.setLoading(true);
+                const data = await api.uploadMap(file);
+                mapHook.setMapUrl(data.url);
+                printerHook.setLoading(false);
+            }
+        }
     };
 }

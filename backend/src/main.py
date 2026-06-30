@@ -4,6 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 from src.error_handlers import register_error_handlers
 from src.printers.router import router as printers_router
 from src.maps.router import router as maps_router
+from src.cartridges.router import router as cartridges_router
 from src.scheduler import PrinterScheduler
 from src.settings import settings
 import logging
@@ -15,14 +16,13 @@ _scheduler: PrinterScheduler | None = None
 async def lifespan(app: FastAPI):
     global _scheduler
     _scheduler = PrinterScheduler(
-        max_concurrent=8,
-        pool_size=8,
-        interval_minutes=5
+        max_concurrent=settings.MAX_CONCURRENT_TASKS,
+        pool_size=settings.SELENIUM_POOL_SIZE,
+        interval_minutes=settings.PRINTER_POLLING_INTERVAL
     )
     _scheduler.start()
     yield
     _scheduler.shutdown()
-
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,9 +36,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+origins = settings.CORS_URL.split(",") 
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -46,4 +48,5 @@ app.add_middleware(
 
 app.include_router(printers_router)
 app.include_router(maps_router)
+app.include_router(cartridges_router)
 register_error_handlers(app)

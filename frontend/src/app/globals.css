@@ -1,42 +1,59 @@
 @import "tailwindcss";
 
-/* 1. Централизованная конфигурация темы */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
-}
+  /* Привязываем наши переменные из .env. Если их нет, используем фоллбэки */
+  --color-background: var(--theme-bg, #0a0a0a);
+  --color-foreground: #ededed;
 
-:root {
-  --background: #0a0a0a; /* Сразу делаем темную тему по умолчанию для стильного UI */
-  --foreground: #ededed;
+  /* Фирменные цвета (извлекаются из .env "на лету") */
+  --color-brand: var(--theme-brand, #f59e0b);
+  --color-brand-hover: var(--theme-brand-hover, #fbbf24);
+  --color-brand-dark: var(--theme-brand-dark, #d97706);
+  --color-brand-muted: var(--theme-brand-muted, #f59e0b33);
+
+  /* Цвета поверхностей */
+  --color-surface: var(--color-zinc-900);
+  --color-surface-hover: var(--color-zinc-800);
+  --color-surface-muted: var(--color-zinc-950);
+
+  --color-border: var(--color-zinc-700);
+  --color-border-light: var(--color-zinc-800);
+
+  --color-text-main: var(--color-zinc-100);
+  --color-text-muted: var(--color-zinc-400);
+  --color-text-dim: var(--color-zinc-500);
+
+  --color-status-online: var(--color-green-500);
+  --color-status-offline: var(--color-rose-500);
+  --color-status-disabled: var(--color-zinc-500);
+
+  --font-sans: ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, monospace;
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   font-family: var(--font-sans);
 }
 
-/* 2. Централизация часто используемых UI-элементов (Компоненты) */
-
+/* 2. Централизация UI-компонентов */
 @utility btn-primary {
-  @apply flex-1 bg-amber-600 hover:bg-amber-500 text-white rounded py-1.5 font-medium transition-colors text-center disabled:opacity-50;
+  @apply flex-1 bg-brand-dark hover:bg-brand text-white rounded py-1.5 font-medium transition-colors text-center disabled:opacity-50;
 }
 
 @utility btn-secondary {
-  @apply bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded px-3 py-1.5 transition-colors text-center;
-}
-
-@utility form-input {
-  @apply w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-zinc-100 focus:outline-none focus:border-amber-500 transition-colors placeholder:text-zinc-500;
-}
-
-@utility card-container {
-  @apply p-4 bg-zinc-900 rounded-lg border border-zinc-800 text-sm;
+  @apply bg-surface-hover hover:bg-border text-text-main rounded px-3 py-1.5 transition-colors text-center;
 }
 
 @utility btn-danger {
-  @apply bg-rose-900 hover:bg-rose-800 text-rose-100 rounded py-1.5 font-medium transition-colors text-center disabled:opacity-50;
+  @apply bg-status-offline/20 text-status-offline hover:bg-status-offline hover:text-white rounded px-3 py-1.5 transition-colors text-center;
+}
+
+@utility form-input {
+  @apply w-full bg-surface-hover border border-border rounded px-2 py-1 text-text-main focus:outline-none focus:border-brand transition-colors placeholder:text-text-dim;
+}
+
+@utility card-container {
+  @apply p-4 bg-surface rounded-lg border border-border-light shadow-sm;
 }

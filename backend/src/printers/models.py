@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from sqlalchemy import Column, String, Float, DateTime, Integer, Boolean
 from sqlalchemy.dialects.postgresql import UUID
-from src.database import Base
+from src.database.postgres import Base
 
 
 class Printer(Base):

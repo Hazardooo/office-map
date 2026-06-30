@@ -9,6 +9,11 @@ class Settings(BaseSettings):
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
     APP_NAME: str = "FastAPI App"
+    DRAGONFLY_URL: str = "redis://localhost:6379/0"
+    CORS_URL: str = "http://localhost:3000"
+    PRINTER_POLLING_INTERVAL: int = 5
+    MAX_CONCURRENT_TASKS: int = 5
+    SELENIUM_POOL_SIZE: int = 4
 
     @computed_field
     @property
