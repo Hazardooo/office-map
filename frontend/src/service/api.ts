@@ -1,5 +1,3 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-
 export interface Printer {
     id: string;
     name: string;
@@ -28,7 +26,6 @@ export interface PrinterListResponse {
     printers: Printer[];
 }
 
-// === ИНТЕРФЕЙСЫ ДЛЯ КАРТРИДЖЕВ ===
 export interface Cartridge {
     id: string;
     name: string;
@@ -54,18 +51,35 @@ export interface CartridgeUpdate {
     printer_ids?: string[];
 }
 
+// Описываем тип для TypeScript
+declare global {
+    interface Window {
+        APP_CONFIG: {
+            apiUrl: string;
+            pollingInterval: number;
+        };
+    }
+}
+
+// Функция динамического получения URL
+export const getBaseUrl = () => {
+    if (typeof window !== "undefined" && window.APP_CONFIG?.apiUrl) {
+        return window.APP_CONFIG.apiUrl;
+    }
+    return "http://localhost:8000/api"; // Фоллбэк
+};
+
 export const api = {
-    // --- ПРИНТЕРЫ ---
     async getPrinters(): Promise<PrinterListResponse> {
-        const res = await fetch(`${BASE_URL}/printers/`);
+        const res = await fetch(`${getBaseUrl()}/printers/`);
         if (!res.ok) throw new Error("Failed to fetch printers");
         return res.json();
     },
 
     async createPrinter(data: PrinterCreate): Promise<Printer> {
-        const res = await fetch(`${BASE_URL}/printers/`, {
+        const res = await fetch(`${getBaseUrl()}/printers/`, {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         });
         if (!res.ok) {
@@ -76,9 +90,9 @@ export const api = {
     },
 
     async updatePrinter(id: string, data: Partial<Printer>): Promise<Printer> {
-        const res = await fetch(`${BASE_URL}/printers/${id}`, {
+        const res = await fetch(`${getBaseUrl()}/printers/${id}`, {
             method: "PUT",
-            headers: {"Content-Type": "application/json"},
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         });
         if (!res.ok) throw new Error("Error updating printer");
@@ -86,56 +100,54 @@ export const api = {
     },
 
     async deletePrinter(id: string): Promise<void> {
-        const res = await fetch(`${BASE_URL}/printers/${id}`, {method: "DELETE"});
+        const res = await fetch(`${getBaseUrl()}/printers/${id}`, { method: "DELETE" });
         if (!res.ok) throw new Error("Error deleting printer");
     },
 
     async refreshPrinter(id: string): Promise<Printer> {
-        const res = await fetch(`${BASE_URL}/printers/${id}/refresh`, {method: "POST"});
+        const res = await fetch(`${getBaseUrl()}/printers/${id}/refresh`, { method: "POST" });
         if (!res.ok) throw new Error("Error refreshing printer");
         return res.json();
     },
 
-    // --- КАРТЫ ---
     async uploadMap(file: File): Promise<{ url: string }> {
         const formData = new FormData();
         formData.append("file", file);
-        const res = await fetch(`${BASE_URL}/maps/upload`, {
+        const res = await fetch(`${getBaseUrl()}/maps/upload`, {
             method: "POST",
             body: formData,
         });
         if (!res.ok) throw new Error("Failed to upload map");
 
         const data = await res.json();
-        // Извлекаем "http://localhost:8000" из BASE_URL и приклеиваем к пути
-        const backendOrigin = new URL(BASE_URL).origin;
+        // Используем getBaseUrl() для извлечения домена
+        const backendOrigin = new URL(getBaseUrl()).origin;
         data.url = data.url.startsWith('http') ? data.url : `${backendOrigin}${data.url}`;
-
         return data;
     },
 
     async getCurrentMap(): Promise<{ url: string } | null> {
-        const res = await fetch(`${BASE_URL}/maps/current`);
+        const res = await fetch(`${getBaseUrl()}/maps/current`);
         if (res.status === 404) return null;
         if (!res.ok) throw new Error("Failed to fetch map");
 
         const data = await res.json();
-        const backendOrigin = new URL(BASE_URL).origin;
+        // Используем getBaseUrl() для извлечения домена
+        const backendOrigin = new URL(getBaseUrl()).origin;
         data.url = data.url.startsWith('http') ? data.url : `${backendOrigin}${data.url}`;
-
         return data;
     },
-    // --- КАРТРИДЖИ ---
+
     async getCartridges(): Promise<Cartridge[]> {
-        const res = await fetch(`${BASE_URL}/cartridges/`);
+        const res = await fetch(`${getBaseUrl()}/cartridges/`);
         if (!res.ok) throw new Error("Не удалось загрузить картриджи");
         return res.json();
     },
 
     async createCartridge(data: CartridgeCreate): Promise<Cartridge> {
-        const res = await fetch(`${BASE_URL}/cartridges/`, {
+        const res = await fetch(`${getBaseUrl()}/cartridges/`, {
             method: "POST",
-            headers: {"Content-Type": "application/json"},
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         });
         if (!res.ok) throw new Error("Ошибка при добавлении");
@@ -143,9 +155,9 @@ export const api = {
     },
 
     async updateCartridge(id: string, data: CartridgeUpdate): Promise<Cartridge> {
-        const res = await fetch(`${BASE_URL}/cartridges/${id}`, {
+        const res = await fetch(`${getBaseUrl()}/cartridges/${id}`, {
             method: "PATCH",
-            headers: {"Content-Type": "application/json"},
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data),
         });
         if (!res.ok) throw new Error("Ошибка при обновлении");
@@ -153,9 +165,7 @@ export const api = {
     },
 
     async deleteCartridge(id: string): Promise<void> {
-        const res = await fetch(`${BASE_URL}/cartridges/${id}`, {
-            method: "DELETE",
-        });
+        const res = await fetch(`${getBaseUrl()}/cartridges/${id}`, { method: "DELETE" });
         if (res.status === 204) return;
         if (!res.ok) throw new Error("Ошибка при удалении");
     }

@@ -92,10 +92,15 @@ export function useOfficeMap() {
         mapHook.loadCurrentMap();
         cartridgeHook.fetchCartridges();
 
+        // Читаем интервал из глобального конфига (если нет, ставим 60 сек по умолчанию)
+        const pollingInterval = typeof window !== "undefined" && window.APP_CONFIG?.pollingInterval
+            ? window.APP_CONFIG.pollingInterval
+            : 60000;
+
         const intervalId = setInterval(() => {
             printerHook.fetchPrinters(true);
             cartridgeHook.fetchCartridges();
-        }, 60000);
+        }, pollingInterval);
 
         return () => clearInterval(intervalId);
     }, []);

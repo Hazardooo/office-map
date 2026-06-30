@@ -1,32 +1,28 @@
 @import "tailwindcss";
 
-/* 1. Централизованная конфигурация темы (Дизайн-система) */
 @theme inline {
-  /* Базовые цвета приложения */
-  --color-background: #0a0a0a;
+  /* Привязываем наши переменные из .env. Если их нет, используем фоллбэки */
+  --color-background: var(--theme-bg, #0a0a0a);
   --color-foreground: #ededed;
 
-  /* Фирменные цвета (Brand) - сейчас это amber (желтый), легко поменять на любой другой */
-  --color-brand: var(--color-amber-500);
-  --color-brand-hover: var(--color-amber-400);
-  --color-brand-dark: var(--color-amber-600);
-  --color-brand-muted: var(--color-amber-500\/20);
+  /* Фирменные цвета (извлекаются из .env "на лету") */
+  --color-brand: var(--theme-brand, #f59e0b);
+  --color-brand-hover: var(--theme-brand-hover, #fbbf24);
+  --color-brand-dark: var(--theme-brand-dark, #d97706);
+  --color-brand-muted: var(--theme-brand-muted, #f59e0b33);
 
-  /* Цвета поверхностей (Карточки, сайдбар) */
+  /* Цвета поверхностей */
   --color-surface: var(--color-zinc-900);
   --color-surface-hover: var(--color-zinc-800);
   --color-surface-muted: var(--color-zinc-950);
 
-  /* Бордеры и линии */
   --color-border: var(--color-zinc-700);
   --color-border-light: var(--color-zinc-800);
 
-  /* Текст */
   --color-text-main: var(--color-zinc-100);
   --color-text-muted: var(--color-zinc-400);
   --color-text-dim: var(--color-zinc-500);
 
-  /* Статусы */
   --color-status-online: var(--color-green-500);
   --color-status-offline: var(--color-rose-500);
   --color-status-disabled: var(--color-zinc-500);

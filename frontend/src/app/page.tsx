@@ -24,10 +24,10 @@ export default function OfficeMapPage() {
         setIsLinking,
         setLinkingPrinterIds,
         setSelectedCartridgeId,
-        loadCartridges,
+        fetchCartridges,
         setNewPrinter,
         setClickCoords,
-        setSelectedPrinter,
+        setSelectedPrinterId,
         handleMapUpload,
         handleMapClick,
         handleCreatePrinter,
@@ -40,7 +40,7 @@ export default function OfficeMapPage() {
     } = useOfficeMap();
 
     return (
-        <div className="flex h-screen bg-zinc-900 text-zinc-100 font-sans">
+        <div className="flex h-screen bg-background text-foreground font-sans">
             <Sidebar
                 loading={loading}
                 totalPrinters={totalPrinters}
@@ -62,9 +62,8 @@ export default function OfficeMapPage() {
                 cartridges={cartridges}
                 selectedCartridgeId={selectedCartridgeId}
                 onSelectCartridge={setSelectedCartridgeId}
-                onRefreshCartridges={loadCartridges}
+                onRefreshCartridges={fetchCartridges} // <--- ПЕРЕДАЕМ ПРАВИЛЬНУЮ ФУНКЦИЮ
 
-                // Новые пропсы для hover и режима связывания
                 setHoveredCartridgeId={setHoveredCartridgeId}
                 isLinking={isLinking}
                 setIsLinking={setIsLinking}
@@ -72,7 +71,7 @@ export default function OfficeMapPage() {
                 setLinkingPrinterIds={setLinkingPrinterIds}
             />
 
-            <main className="flex-1 flex flex-col items-center justify-center p-8 bg-zinc-900 overflow-auto relative">
+            <main className="flex-1 flex flex-col items-center justify-center p-8 bg-background overflow-auto relative">
                 <MapCanvas
                     mapUrl={mapUrl}
                     mode={mode}
