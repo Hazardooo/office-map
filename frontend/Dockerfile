@@ -2,6 +2,8 @@
 FROM node:24-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
+RUN npm config set strict-ssl false
+RUN npm config set registry https://registry.npmjs.org/
 RUN npm install
 COPY . .
 RUN npm run build

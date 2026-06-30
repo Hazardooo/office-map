@@ -1,21 +1,18 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type {Metadata} from "next";
+import {Geist, Geist_Mono} from "next/font/google";
 import "./globals.css";
-
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
     title: "Office Map — Printer Monitor",
     description: "Interactive office floor plan with printer monitoring",
-    icons: { icon: [{ url: '/icon.svg', type: 'image/svg+xml' }] },
+    icons: {icon: [{url: '/icon.svg', type: 'image/svg+xml'}]},
 };
 
 // ВАЖНО: Заставляем Next.js рендерить страницу динамически при каждом запросе,
 // чтобы он всегда читал свежие данные из .env, а не кэшировал их при сборке.
 export const dynamic = "force-dynamic";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({children}: { children: React.ReactNode }) {
     // 1. Собираем конфиг логики
     const config = {
         apiUrl: process.env.API_URL || "http://localhost:8000/api",
@@ -33,12 +30,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     } as React.CSSProperties;
 
     return (
-        <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+        <html lang="en" className="h-full antialiased">
         <head>
-            {/* Инжектим конфиг в глобальный объект window до загрузки React */}
-            <script dangerouslySetInnerHTML={{ __html: `window.APP_CONFIG = ${JSON.stringify(config)};` }} />
+            <script dangerouslySetInnerHTML={{__html: `window.APP_CONFIG = ${JSON.stringify(config)};`}}/>
         </head>
-        <body className="min-h-full flex flex-col" style={themeVars}>
+        <body className="min-h-full flex flex-col font-sans" style={themeVars}>
         {children}
         </body>
         </html>
