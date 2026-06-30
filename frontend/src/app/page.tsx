@@ -62,7 +62,7 @@ export default function OfficeMapPage() {
                 cartridges={cartridges}
                 selectedCartridgeId={selectedCartridgeId}
                 onSelectCartridge={setSelectedCartridgeId}
-                onRefreshCartridges={fetchCartridges} // <--- ПЕРЕДАЕМ ПРАВИЛЬНУЮ ФУНКЦИЮ
+                onRefreshCartridges={fetchCartridges}
 
                 setHoveredCartridgeId={setHoveredCartridgeId}
                 isLinking={isLinking}
