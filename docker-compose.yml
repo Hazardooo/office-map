@@ -7,18 +7,12 @@ services:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_DB: ${DB_NAME:-office_map}
-    ports:
-      - "5432:5432"
     expose:
       - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-office_map}",
-        ]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-office_map}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -29,7 +23,6 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
-    # Dragonfly по умолчанию использует все ядра, но можно ограничить:
     command: ["--maxmemory=1gb", "--memcached_port=0"]
     volumes:
       - dragonfly_data:/data
@@ -46,6 +39,7 @@ services:
       - .env
     environment:
       - DB_HOST=postgres
+      - DRAGONFLY_HOST=dragonfly
     volumes:
       - ./backend/alembic:/app/alembic
       - ./backend/src:/app/src
@@ -70,11 +64,14 @@ services:
       - .env
     environment:
       - DB_HOST=postgres
+      - DRAGONFLY_HOST=dragonfly
       - PYTHONUNBUFFERED=1
     command: >
-      sh -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
+      sh -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000"
     depends_on:
       postgres:
+        condition: service_healthy
+      dragonfly:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
